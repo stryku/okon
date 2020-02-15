@@ -2,7 +2,7 @@
 # This configuration requires clang-format version 6.0 exactly.
 BasedOnStyle: Mozilla
 AlignOperands: false
-AllowShortFunctionsOnASingleLine: InlineOnly
+AllowShortFunctionsOnASingleLine: None
 AlwaysBreakAfterDefinitionReturnType: None
 AlwaysBreakAfterReturnType: None
 BinPackArguments: true
@@ -16,6 +16,6 @@ BraceWrapping:
 BreakBeforeBraces: Custom
 ColumnLimit: 100
 IndentPPDirectives: AfterHash
-SortUsingDeclarations: false
+SortUsingDeclarations: true
 SpaceAfterTemplateKeyword: true
 ...
