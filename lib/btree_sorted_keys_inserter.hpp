@@ -3,7 +3,7 @@
 #include "btree_base.hpp"
 #include "sha1_utils.hpp"
 
-namespace pwned {
+namespace okon {
 
 template <typename DataStorage>
 class btree_sorted_keys_inserter : public btree_base<DataStorage>

@@ -10,7 +10,7 @@
 
 auto to_sha1(std::string_view sha1_txt)
 {
-  pwned::sha1_t sha1;
+  okon::sha1_t sha1;
 
   std::memcpy(&sha1[0], sha1_txt.data(), 40);
 
@@ -24,20 +24,20 @@ int main()
   //  const std::string_view btree_path = "/media/stryku/tb_disk/haveibeenpwned/prepared/btree";
   //  std::ofstream{ btree_path.data() };
 
-  //  pwned::preparer generator{ "/media/stryku/tb_disk/haveibeenpwned/pwned_original.pwned_db",
+  //  okon::preparer generator{ "/media/stryku/tb_disk/haveibeenpwned/pwned_original.pwned_db",
   //                             "/media/stryku/tb_disk/haveibeenpwned/prepared/" };
   //  generator.prepare();
 
-  pwned::fstream_wrapper wrapper{ "/media/stryku/tb_disk/haveibeenpwned/prepared/btree" };
-  pwned::btree<pwned::fstream_wrapper> tree{ wrapper };
-  const auto s = pwned::to_sha1("0E115FEEAB9474B9D680E5528024201AF6E7722F");
+  okon::fstream_wrapper wrapper{ "/media/stryku/tb_disk/haveibeenpwned/prepared/btree" };
+  okon::btree<okon::fstream_wrapper> tree{ wrapper };
+  const auto s = okon::to_sha1("0E115FEEAB9474B9D680E5528024201AF6E7722F");
   const auto result = tree.contains(s);
 
   //  const std::string_view btree_path =
   //    "/home/stryku/my/programming/pwned_lightning/tmp/btree_test/btree";
   //  std::ofstream{ btree_path.data() };
 
-  //  pwned::btree btree{ btree_path, 2 };
+  //  okon::btree btree{ btree_path, 2 };
   //
   //  btree.insert_sorted(to_sha1("00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
   //  btree.insert_sorted(to_sha1("10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
@@ -58,7 +58,7 @@ int main()
   //
   //  btree.finalize_inserting();
 
-  //  std::cout << (pwned::exists_splitted_sorted(
+  //  std::cout << (okon::exists_splitted_sorted(
   //                  "/media/stryku/tb_disk/haveibeenpwned/prepared_full_text/",
   //                  "895B317C76B8E504C2FB32DBB4420178F60CE321")
   //                  ? "exists"
@@ -68,13 +68,13 @@ int main()
   //
   //  switch (result) {
   //
-  //    case pwned::trie_file_generator::generation_result::input_file_not_found:
+  //    case okon::trie_file_generator::generation_result::input_file_not_found:
   //      std::cout << "input_file_not_found";
   //      break;
-  //    case pwned::trie_file_generator::generation_result::cant_open_output_file:
+  //    case okon::trie_file_generator::generation_result::cant_open_output_file:
   //      std::cout << "cant_open_output_file";
   //      break;
-  //    case pwned::trie_file_generator::generation_result::success:
+  //    case okon::trie_file_generator::generation_result::success:
   //      std::cout << "success";
   //      break;
   //  }

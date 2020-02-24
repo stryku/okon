@@ -1,4 +1,4 @@
-add_library(pwned_sonic STATIC
+add_library(okon STATIC
     btree.cpp
     btree.hpp
     btree_base.hpp
@@ -13,7 +13,7 @@ add_library(pwned_sonic STATIC
     splitted_files.hpp
 )
 
-target_link_libraries(pwned_sonic
+target_link_libraries(okon
     PRIVATE
         ${CMAKE_THREAD_LIBS_INIT}
 )

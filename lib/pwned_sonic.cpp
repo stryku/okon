@@ -8,7 +8,7 @@ namespace {
 constexpr auto k_sha1_length{ 40u };
 }
 
-namespace pwned {
+namespace okon {
 
 bool transform_to_trie(std::string_view input_file, std::string_view output_file)
 {

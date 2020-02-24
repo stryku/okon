@@ -3,7 +3,7 @@
 #include <fstream>
 #include <string_view>
 
-namespace pwned {
+namespace okon {
 class fstream_wrapper
 {
 public:

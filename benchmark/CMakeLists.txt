@@ -1,30 +1,30 @@
-add_executable(pwned_sonic_benchmarks
+add_executable(okon_benchmarks
     exists_benchmark.cpp
 )
 
-if(NOT PWNED_SONIC_BENCHMARK_FILE)
-    message(FATAL_ERROR "Set PWNED_SONIC_BENCHMARK_FILE variable and try again")
+if(NOT OKON_BENCHMARK_FILE)
+    message(FATAL_ERROR "Set OKON_BENCHMARK_PREPARED_DIR variable and try again")
 endif()
 
-if(NOT PWNED_SONIC_BENCHMARK_PREPARED_DIR)
-    message(FATAL_ERROR "Set PWNED_SONIC_BENCHMARK_PREPARED_DIR variable and try again")
+if(NOT OKON_BENCHMARK_PREPARED_DIR)
+    message(FATAL_ERROR "Set OKON_BENCHMARK_PREPARED_DIR variable and try again")
 endif()
 
-target_include_directories(pwned_sonic_benchmarks
+target_include_directories(okon_benchmarks
     PRIVATE
-        ${PWNED_SONIC_DIR}
+        ${OKON_DIR}
         ${benchmark_INCLUDE_DIRS}
 )
 
-target_link_libraries(pwned_sonic_benchmarks
+target_link_libraries(okon_benchmarks
     PRIVATE
-        pwned_sonic
+        okon
         ${benchmark_LIBRARIES}
         ${CMAKE_THREAD_LIBS_INIT}
 )
 
-target_compile_definitions(pwned_sonic_benchmarks
+target_compile_definitions(okon_benchmarks
     PRIVATE
-        -DPWNED_SONIC_BENCHMARK_FILE="${PWNED_SONIC_BENCHMARK_FILE}"
-        -DPWNED_SONIC_BENCHMARK_PREPARED_DIR="${PWNED_SONIC_BENCHMARK_PREPARED_DIR}"
+        -DOKON_BENCHMARK_FILE="${OKON_BENCHMARK_FILE}"
+        -DOKON_BENCHMARK_PREPARED_DIR="${OKON_BENCHMARK_PREPARED_DIR}"
 )

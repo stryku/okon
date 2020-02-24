@@ -17,7 +17,7 @@ constexpr auto k_max_line_length{ k_sha1_length + k_max_digit_length + 2u }; // 
 std::array<char, k_max_line_length> line_buffer{};
 }
 
-namespace pwned {
+namespace okon {
 preparer::preparer(std::string_view input_file_path, std::string_view output_files_dir)
   : m_input_file{ input_file_path.data() }
   , m_output_files{ output_files_dir, std::ios::in | std::ios::out | std::ios::trunc }

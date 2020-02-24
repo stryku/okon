@@ -7,7 +7,7 @@
 #include <string>
 #include <string_view>
 
-namespace pwned {
+namespace okon {
 class splitted_files
 {
 public:

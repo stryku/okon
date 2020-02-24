@@ -1,44 +1,43 @@
 cmake_minimum_required(VERSION 3.14)
 
-project(pwned_sonic)
+project(okon)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules" ${CMAKE_MODULE_PATH})
-
 set(CMAKE_CXX_STANDARD 17)
 
 find_package(Threads)
 
 add_subdirectory(lib)
 
-set(PWNED_SONIC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+set(OKON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 
-add_executable(pwned_sonic_client
+add_executable(okon-cli
     main.cpp
 )
 
-target_link_libraries(pwned_sonic_client
-        PRIVATE
-        pwned_sonic
-        )
-
-target_link_libraries(pwned_sonic_client
-        PRIVATE
-        pwned_sonic
-        )
-
-target_include_directories(pwned_sonic_client
+target_link_libraries(okon-cli
     PRIVATE
-        ${PWNED_SONIC_DIR}
+        okon
 )
 
-option(PWNED_SONIC_WITH_BENCHMARKS "Build benchmarks (requires googlebenchmark)" OFF)
-if(PWNED_SONIC_WITH_BENCHMARKS)
+target_link_libraries(okon-cli
+        PRIVATE
+        okon
+)
+
+target_include_directories(okon-cli
+    PRIVATE
+        ${OKON_DIR}
+)
+
+option(OKON_WITH_BENCHMARKS "Build benchmarks (requires googlebenchmark)" OFF)
+if(OKON_WITH_BENCHMARKS)
     find_package(GoogleBenchmark REQUIRED)
     add_subdirectory(benchmark)
 endif()
 
-option(PWNED_SONIC_WITH_TESTS "Build tests" OFF)
-if(PWNED_SONIC_WITH_TESTS)
+option(OKON_WITH_TESTS "Build tests" OFF)
+if(OKON_WITH_TESTS)
     configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
     execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
             RESULT_VARIABLE result
