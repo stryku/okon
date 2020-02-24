@@ -5,7 +5,6 @@
 #include "fstream_wrapper.hpp"
 #include "preparer.hpp"
 #include "pwned_sonic.hpp"
-#include "trie_file_generator.hpp"
 
 #include <fstream>
 
