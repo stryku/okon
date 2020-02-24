@@ -11,13 +11,9 @@ add_library(pwned_sonic STATIC
     pwned_sonic.hpp
     sha1_utils.hpp
     splitted_files.hpp
-    trie_file_generator.cpp
-    trie_file_generator.hpp
-    trie_manipulator.cpp
-    trie_manipulator.hpp
-    trie_node.hpp
 )
 
 target_link_libraries(pwned_sonic
     PRIVATE
-        ${CMAKE_THREAD_LIBS_INIT})
+        ${CMAKE_THREAD_LIBS_INIT}
+)
