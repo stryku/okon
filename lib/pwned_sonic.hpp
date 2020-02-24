@@ -5,7 +5,7 @@
 #include <cstring>
 #include <string_view>
 
-namespace pwned {
+namespace okon {
 
 enum class search_result
 {

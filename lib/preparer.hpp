@@ -11,7 +11,7 @@
 #include <fstream>
 #include <optional>
 
-namespace pwned {
+namespace okon {
 
 class preparer
 {

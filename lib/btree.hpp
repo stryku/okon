@@ -2,7 +2,7 @@
 
 #include "btree_node.hpp"
 
-namespace pwned {
+namespace okon {
 template <typename DataStorage>
 class btree
 {
@@ -38,7 +38,10 @@ private:
     return contains(next_node, sha1);
   }
 
-  btree_node read_root() const { return read_node(m_root_ptr); }
+  btree_node read_root() const
+  {
+    return read_node(m_root_ptr);
+  }
 
   btree_node read_node(btree_node::pointer_t ptr) const
   {

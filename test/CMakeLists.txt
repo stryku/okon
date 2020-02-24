@@ -7,11 +7,11 @@ add_executable(sorted_insert_test
 
 target_link_libraries(sorted_insert_test
     PRIVATE
-        pwned_sonic
+        okon
         gmock_main
 )
 
 target_include_directories(sorted_insert_test
     PRIVATE
-        ${PWNED_SONIC_DIR}
+        ${OKON_DIR}
 )

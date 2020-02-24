@@ -1,6 +1,6 @@
 #include "btree_node.hpp"
 
-namespace pwned {
+namespace okon {
 btree_node::btree_node(unsigned t, pointer_t parent_ptr)
   : pointers(2 * t, k_unused_pointer)
   , keys{ 2 * t - 1 }

@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <cstring>
 
-namespace pwned {
+namespace okon {
 
 using text_sha1_t = std::array<char, 40>;
 using binary_sha1_t = std::array<uint8_t, 20u>;
@@ -45,10 +45,10 @@ inline constexpr uint8_t chars_to_byte(const char* cs)
 
 inline sha1_t to_sha1(std::string_view sha1_text)
 {
-  pwned::sha1_t sha1;
+  okon::sha1_t sha1;
 
   for (auto i = 0; i < 40; i += 2) {
-    sha1[i / 2] = pwned::chars_to_byte(sha1_text.data() + i);
+    sha1[i / 2] = okon::chars_to_byte(sha1_text.data() + i);
   }
 
   //  std::memcpy(&sha1[0], sha1_txt.data(), 40);
