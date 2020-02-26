@@ -25,6 +25,7 @@ target_include_directories(okon
 )
 
 set_target_properties(okon PROPERTIES PUBLIC_HEADER ${OKON_INCLUDE_DIR}/okon/okon.h)
+include(GNUInstallDirs)
 install(
     TARGETS okon
     PUBLIC_HEADER
