@@ -7,30 +7,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(Threads)
 
-
 set(OKON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(OKON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(lib)
+add_subdirectory(okon-cli)
 
-add_executable(okon-cli
-    main.cpp
-)
-
-target_link_libraries(okon-cli
-    PRIVATE
-        okon
-)
-
-target_link_libraries(okon-cli
-    PRIVATE
-        okon
-)
-
-target_include_directories(okon-cli
-    PRIVATE
-        ${OKON_DIR}
-)
 
 option(OKON_WITH_BENCHMARKS "Build benchmarks (requires googlebenchmark)" OFF)
 if(OKON_WITH_BENCHMARKS)
