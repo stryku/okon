@@ -11,8 +11,11 @@ set(OKON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(OKON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(lib)
-add_subdirectory(okon-cli)
 
+option(OKON_WITH_CLI "Should okon-cli binary be built?" OFF)
+if(OKON_WITH_CLI)
+    add_subdirectory(okon-cli)
+endif()
 
 option(OKON_WITH_BENCHMARKS "Build benchmarks (requires googlebenchmark)" OFF)
 if(OKON_WITH_BENCHMARKS)
