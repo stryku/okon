@@ -7,9 +7,11 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(Threads)
 
-add_subdirectory(lib)
 
 set(OKON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+set(OKON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+add_subdirectory(lib)
 
 add_executable(okon-cli
     main.cpp
@@ -21,7 +23,7 @@ target_link_libraries(okon-cli
 )
 
 target_link_libraries(okon-cli
-        PRIVATE
+    PRIVATE
         okon
 )
 
