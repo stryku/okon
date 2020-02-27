@@ -6,7 +6,13 @@
 #include "preparer.hpp"
 #include "pwned_sonic.hpp"
 
+#include <okon/okon.h>
+
+#include <algorithm>
 #include <fstream>
+#include <iterator>
+#include <optional>
+#include <unordered_map>
 
 auto to_sha1(std::string_view sha1_txt)
 {
@@ -17,66 +23,113 @@ auto to_sha1(std::string_view sha1_txt)
   return sha1;
 }
 
-int main()
+using parsed_args_t = std::unordered_map<std::string_view, std::string_view>;
+
+std::optional<parsed_args_t> parse_args(const std::vector<std::string_view>& args)
 {
-  //  std::ofstream{ "/media/stryku/tb_disk/haveibeenpwned/pwned_head.pwned_trie" };
+  parsed_args_t result;
 
-  //  const std::string_view btree_path = "/media/stryku/tb_disk/haveibeenpwned/prepared/btree";
-  //  std::ofstream{ btree_path.data() };
+  const auto accepted_args = { std::string_view{ "--path" }, std::string_view{ "--hash" },
+                               std::string_view{ "--prepare" }, std::string_view{ "--wd" },
+                               std::string_view{ "--output" } };
 
-  //  okon::preparer generator{ "/media/stryku/tb_disk/haveibeenpwned/pwned_original.pwned_db",
-  //                             "/media/stryku/tb_disk/haveibeenpwned/prepared/" };
-  //  generator.prepare();
+  for (auto i = 0u; i < args.size(); i += 2) {
+    if (std::find(std::cbegin(accepted_args), std::cend(accepted_args), args[i]) ==
+        std::cend(accepted_args)) {
+      std::cerr << "unknown argument: " << args[i].data() << '\n';
+      return std::nullopt;
+    }
 
-  okon::fstream_wrapper wrapper{ "/media/stryku/tb_disk/haveibeenpwned/prepared/btree" };
-  okon::btree<okon::fstream_wrapper> tree{ wrapper };
-  const auto s = okon::to_sha1("0E115FEEAB9474B9D680E5528024201AF6E7722F");
-  const auto result = tree.contains(s);
+    if (i + 1 >= args.size()) {
+      std::cerr << "expected argument after: " << args[i].data() << '\n';
+      return std::nullopt;
+    }
 
-  //  const std::string_view btree_path =
-  //    "/home/stryku/my/programming/pwned_lightning/tmp/btree_test/btree";
-  //  std::ofstream{ btree_path.data() };
+    result[args[i]] = args[i + 1];
+  }
 
-  //  okon::btree btree{ btree_path, 2 };
-  //
-  //  btree.insert_sorted(to_sha1("00AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("20AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("30AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("40AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("50AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("60AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("70AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("80AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("90AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("A0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("B0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("C0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("D0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("E0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //  btree.insert_sorted(to_sha1("F0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"));
-  //
-  //  btree.finalize_inserting();
+  return result;
+}
 
-  //  std::cout << (okon::exists_splitted_sorted(
-  //                  "/media/stryku/tb_disk/haveibeenpwned/prepared_full_text/",
-  //                  "895B317C76B8E504C2FB32DBB4420178F60CE321")
-  //                  ? "exists"
-  //                  : "doesnt exist");
+bool handle_prepare(const parsed_args_t& args)
+{
+  const auto found_prepare = args.find("--prepare");
+  if (found_prepare == std::cend(args)) {
+    std::cerr << "expected --prepare argument";
+    return false;
+  }
 
-  //  const auto result = generator.prepare();
-  //
-  //  switch (result) {
-  //
-  //    case okon::trie_file_generator::generation_result::input_file_not_found:
-  //      std::cout << "input_file_not_found";
-  //      break;
-  //    case okon::trie_file_generator::generation_result::cant_open_output_file:
-  //      std::cout << "cant_open_output_file";
-  //      break;
-  //    case okon::trie_file_generator::generation_result::success:
-  //      std::cout << "success";
-  //      break;
-  //  }
-  return 0;
+  const auto found_wd = args.find("--wd");
+  if (found_wd == std::cend(args)) {
+    std::cerr << "expected --wd argument";
+    return false;
+  }
+
+  const auto found_output = args.find("--output");
+  if (found_output == std::cend(args)) {
+    std::cerr << "expected --output argument";
+    return false;
+  }
+
+  const auto input_file_path = found_prepare->second;
+  const auto working_directory_path = found_wd->second;
+  const auto output_file_directory = found_output->second;
+
+  const auto result = okon_prepare(input_file_path.data(), working_directory_path.data(),
+                                   output_file_directory.data());
+  return !result;
+}
+
+bool handle_check(const parsed_args_t& args)
+{
+  const auto found_path = args.find("--path");
+  if (found_path == std::cend(args)) {
+    std::cerr << "expected --path argument";
+    return false;
+  }
+
+  const auto found_hash = args.find("--hash");
+  if (found_hash == std::cend(args)) {
+    std::cerr << "expected --hash argument";
+    return false;
+  }
+
+  const auto file_path = found_path->second;
+  const auto hash = found_hash->second;
+  return okon_exists_text(hash.data(), file_path.data());
+}
+
+int main(int argc, const char* argv[])
+{
+  std::vector<std::string_view> args;
+  args.reserve(argc);
+
+  for (auto i = 1u; i < argc; ++i) {
+    args.emplace_back(argv[i]);
+  }
+
+  const auto parsed_args = parse_args(args);
+  if (!parsed_args) {
+    return 2;
+  }
+
+  for (std::string_view argument : { "--prepare", "--wd", "--output" }) {
+    if (parsed_args->find(argument) != std::cend(*parsed_args)) {
+      const auto success = handle_prepare(*parsed_args);
+      if (!success) {
+        return 2;
+      }
+      break;
+    }
+  }
+
+  for (std::string_view argument : { "--path", "--hash" }) {
+    if (parsed_args->find(argument) != std::cend(*parsed_args)) {
+      const auto found = handle_check(*parsed_args);
+      std::cout << (found ? 1 : 0) << '\n';
+      return found ? 1 : 0;
+    }
+  }
+
+  return 2;
 }

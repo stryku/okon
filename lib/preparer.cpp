@@ -18,10 +18,11 @@ std::array<char, k_max_line_length> line_buffer{};
 }
 
 namespace okon {
-preparer::preparer(std::string_view input_file_path, std::string_view output_files_dir)
+preparer::preparer(std::string_view input_file_path, std::string_view working_directory_path,
+                   std::string_view output_file_path)
   : m_input_file{ input_file_path.data() }
-  , m_output_files{ output_files_dir, std::ios::in | std::ios::out | std::ios::trunc }
-  , m_file_wrapper{ output_files_dir.data() + std::string{ "btree" } }
+  , m_output_files{ working_directory_path, std::ios::in | std::ios::out | std::ios::trunc }
+  , m_file_wrapper{ output_file_path }
   , m_btree{ m_file_wrapper, 2048u }
   , m_sha1_buffers{ 256u }
 {

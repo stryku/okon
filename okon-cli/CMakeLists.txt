@@ -10,6 +10,7 @@ target_link_libraries(okon-cli
 target_include_directories(okon-cli
     PRIVATE
         ${OKON_DIR}
+        ${OKON_INCLUDE_DIR}
 )
 
 include(GNUInstallDirs)
