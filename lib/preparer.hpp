@@ -16,7 +16,8 @@ namespace okon {
 class preparer
 {
 public:
-  explicit preparer(std::string_view input_file_path, std::string_view output_files_dir);
+  explicit preparer(std::string_view input_file_path, std::string_view working_directory_path,
+                    std::string_view output_file_path);
 
   void prepare();
 

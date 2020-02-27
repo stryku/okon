@@ -4,11 +4,12 @@
 #include "fstream_wrapper.hpp"
 #include "preparer.hpp"
 
-int okon_prepare(const char* input_db_file_path, const char* output_file_directory)
+int okon_prepare(const char* input_db_file_path, const char* working_directory,
+                 const char* output_processed_file_path)
 {
-  std::ofstream{ output_file_directory + std::string{ "/okon.btree" } };
-  okon::preparer generator{ input_db_file_path, output_file_directory };
-  generator.prepare();
+  std::ofstream{ output_processed_file_path };
+  okon::preparer preparer{ input_db_file_path, working_directory, output_processed_file_path };
+  preparer.prepare();
 
   return 0;
 }
