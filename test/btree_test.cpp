@@ -14,7 +14,7 @@ TEST(Btree, KeyInRoot_Contains_ReturnsTrue)
     btree_node::k_unused_pointer) };
 
   memory_storage storage;
-  storage.m_storage = to_storage(k_test_t_value, 0u, expected_nodes);
+  storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
 
   btree tree{ storage };
 
@@ -33,7 +33,7 @@ TEST(Btree, NotExistingKey_Contains_ReturnsFalse)
     btree_node::k_unused_pointer) };
 
   memory_storage storage;
-  storage.m_storage = to_storage(k_test_t_value, 0u, expected_nodes);
+  storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
 
   btree tree{ storage };
 
