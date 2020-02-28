@@ -12,16 +12,16 @@ public:
   using pointer_t = uint32_t;
   static constexpr auto k_unused_pointer = std::numeric_limits<pointer_t>::max();
 
-  explicit btree_node(unsigned t, pointer_t parent_ptr);
+  explicit btree_node(uint32_t order, pointer_t parent_ptr);
 
-  static uint64_t binary_size(unsigned t);
-  static uint64_t binary_pointers_size(unsigned t);
-  static uint64_t binary_keys_size(unsigned t);
+  static uint64_t binary_size(unsigned order);
+  static uint64_t binary_pointers_size(unsigned order);
+  static uint64_t binary_keys_size(unsigned order);
 
   // Assumes that this is a leaf node.
   uint32_t insert(const sha1_t& sha1);
 
-  uint32_t t() const;
+  uint32_t order() const;
   uint32_t place_for(const sha1_t& sha1) const;
   bool contains(const sha1_t& sha1) const;
 

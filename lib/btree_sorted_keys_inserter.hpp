@@ -9,9 +9,9 @@ template <typename DataStorage>
 class btree_sorted_keys_inserter : public btree_base<DataStorage>
 {
 public:
-  explicit btree_sorted_keys_inserter(DataStorage& storage, unsigned t)
-    : btree_base<DataStorage>{ storage, t }
-    , m_current_node{ t, btree_node::k_unused_pointer }
+  explicit btree_sorted_keys_inserter(DataStorage& storage, uint32_t order)
+    : btree_base<DataStorage>{ storage, order }
+    , m_current_node{ order, btree_node::k_unused_pointer }
   {
     m_current_node.this_pointer = new_node_pointer();
     m_current_node.is_leaf = true;
@@ -37,7 +37,7 @@ private:
     return m_next_node_ptr++;
   }
 
-  btree_node split_node(btree_node& node, const sha1_t& sha1)
+  btree_node split_node(btree_node& node, const sha1_t& sha1, unsigned level = 0u)
   {
     /*
      * 1. If root, move it to a new place and save pointer
@@ -54,15 +54,14 @@ private:
 
       const auto new_root_ptr = new_node_pointer();
 
-      btree_node new_root{ this->t(), node.parent_pointer };
+      btree_node new_root{ this->order(), node.parent_pointer };
       new_root.insert(sha1);
       new_root.pointers[0] = node.this_pointer;
       new_root.this_pointer = new_root_ptr;
       new_root.is_leaf = false;
 
       // create_children_till_leaf() will write the new_root to file.
-      const auto new_child_node =
-        create_children_till_leaf(new_root, sha1, m_current_tree_height - 1);
+      const auto new_child_node = create_children_till_leaf(new_root, m_current_tree_height - 1);
 
       node.parent_pointer = new_root_ptr;
       this->write_node(node);
@@ -73,34 +72,23 @@ private:
 
       return new_child_node;
     } else {
-
       this->write_node(node);
-
       auto parent_node = this->read_node(node.parent_pointer);
       if (parent_node.is_full()) {
-        return split_node(parent_node, sha1);
+        return split_node(parent_node, sha1, level + 1);
       } else {
-        const auto right_empty_child_pointer = new_node_pointer();
-        btree_node right_empty_child{ this->t(), parent_node.this_pointer };
-        right_empty_child.this_pointer = right_empty_child_pointer;
-        right_empty_child.is_leaf = node.is_leaf;
-        this->write_node(right_empty_child);
-
-        const auto insertion_place = parent_node.insert(sha1);
-        const auto ptr_place_on_right_of_inserted_key = insertion_place + 1u;
-        parent_node.pointers[ptr_place_on_right_of_inserted_key] = right_empty_child_pointer;
+        parent_node.insert(sha1);
         this->write_node(parent_node);
-
-        return right_empty_child;
+        return create_children_till_leaf(parent_node, level);
       }
     }
   }
 
-  btree_node create_children_till_leaf(btree_node& parent, const sha1_t& sha1, unsigned level)
+  btree_node create_children_till_leaf(btree_node& parent, unsigned level)
   {
     const auto is_on_leaf_level = (level == 0u);
 
-    btree_node node{ this->t(), parent.this_pointer };
+    btree_node node{ this->order(), parent.this_pointer };
     node.this_pointer = new_node_pointer();
     node.keys_count = 0u;
     node.is_leaf = is_on_leaf_level;
@@ -113,7 +101,7 @@ private:
       return node;
     }
 
-    return create_children_till_leaf(node, sha1, level - 1u);
+    return create_children_till_leaf(node, level - 1u);
   }
 
 private:

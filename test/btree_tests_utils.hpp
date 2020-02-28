@@ -8,31 +8,31 @@ namespace okon::test {
 constexpr auto k_file_metadata_size{ sizeof(uint32_t) +
                                      sizeof(btree_node::pointer_t) }; // t + root pointer
 constexpr std::string_view k_empty_sha1{ "0000000000000000000000000000000000000000" };
-constexpr uint32_t k_test_t_value{ 2u };
+constexpr uint32_t k_test_order_value{ 2u };
 
 #pragma pack(push, 1)
 struct storage_metadata
 {
-  uint32_t t{};
+  uint32_t order{};
   btree_node::pointer_t root_ptr;
 };
 
-template <unsigned T>
+template <unsigned Order>
 struct binary_node
 {
   bool is_leaf;
   uint32_t keys_count;
-  std::array<btree_node::pointer_t, 2 * T> pointers;
-  std::array<sha1_t, 2 * T - 1> keys;
+  std::array<btree_node::pointer_t, Order + 1> pointers;
+  std::array<sha1_t, Order> keys;
   btree_node::pointer_t parent_pointer;
 };
 #pragma pack(pop)
 
-template <unsigned T>
+template <unsigned Order>
 struct decoded_storage
 {
   storage_metadata metadata;
-  std::vector<binary_node<T>> nodes;
+  std::vector<binary_node<Order>> nodes;
 };
 
 inline std::vector<uint8_t> to_storage(uint32_t t, btree_node::pointer_t root_ptr,
@@ -65,12 +65,12 @@ inline std::vector<uint8_t> to_storage(uint32_t t, btree_node::pointer_t root_pt
   return result;
 }
 
-template <unsigned T>
-inline decoded_storage<T> decode_storage(const std::vector<uint8_t>& binary_data)
+template <unsigned Order>
+inline decoded_storage<Order> decode_storage(const std::vector<uint8_t>& binary_data)
 {
-  using node_t = binary_node<T>;
+  using node_t = binary_node<Order>;
 
-  decoded_storage<T> s;
+  decoded_storage<Order> s;
 
   const auto* ptr = binary_data.data();
 
@@ -93,7 +93,7 @@ inline btree_node make_node(bool is_leaf, uint32_t keys_count,
                             const std::vector<std::string_view>& keys,
                             btree_node::pointer_t parent_ptr)
 {
-  btree_node node{ k_test_t_value, 0u };
+  btree_node node{ k_test_order_value, 0u };
 
   node.is_leaf = is_leaf;
   node.keys_count = keys_count;
@@ -110,14 +110,14 @@ inline btree_node make_node(bool is_leaf, uint32_t keys_count,
 
 MATCHER_P(StorageEq, expected, "")
 {
-  const auto expected_storage = decode_storage<k_test_t_value>(expected);
-  const auto result_storage = decode_storage<k_test_t_value>(arg);
+  const auto expected_storage = decode_storage<k_test_order_value>(expected);
+  const auto result_storage = decode_storage<k_test_order_value>(arg);
 
   auto ok{ true };
 
-  if (result_storage.metadata.t != expected_storage.metadata.t) {
-    GTEST_COUT << "Result T (" << result_storage.metadata.t << ") != Expected T ("
-               << expected_storage.metadata.t << "); ";
+  if (result_storage.metadata.order != expected_storage.metadata.order) {
+    GTEST_COUT << "Result Order (" << result_storage.metadata.order << ") != Expected Order ("
+               << expected_storage.metadata.order << "); ";
     ok = false;
   }
 

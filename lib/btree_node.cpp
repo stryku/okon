@@ -1,27 +1,27 @@
 #include "btree_node.hpp"
 
 namespace okon {
-btree_node::btree_node(unsigned t, pointer_t parent_ptr)
-  : pointers(2 * t, k_unused_pointer)
-  , keys{ 2 * t - 1 }
+btree_node::btree_node(uint32_t order, pointer_t parent_ptr)
+  : pointers(order + 1, k_unused_pointer)
+  , keys{ order }
   , parent_pointer{ parent_ptr }
 {
 }
 
-uint64_t btree_node::binary_size(unsigned t)
+uint64_t btree_node::binary_size(uint32_t order)
 {
-  return sizeof(is_leaf) + sizeof(keys_count) + binary_pointers_size(t) + binary_keys_size(t) +
-    sizeof(parent_pointer);
+  return sizeof(is_leaf) + sizeof(keys_count) + binary_pointers_size(order) +
+    binary_keys_size(order) + sizeof(parent_pointer);
 }
 
-uint64_t btree_node::binary_pointers_size(unsigned t)
+uint64_t btree_node::binary_pointers_size(uint32_t order)
 {
-  return 2 * t * sizeof(pointer_t);
+  return (order + 1) * sizeof(pointer_t);
 }
 
-uint64_t btree_node::binary_keys_size(unsigned t)
+uint64_t btree_node::binary_keys_size(uint32_t order)
 {
-  return (2 * t - 1) * sizeof(sha1_t);
+  return order * sizeof(sha1_t);
 }
 
 uint32_t btree_node::insert(const sha1_t& sha1)
@@ -40,9 +40,9 @@ uint32_t btree_node::insert(const sha1_t& sha1)
   return place;
 }
 
-uint32_t btree_node::t() const
+uint32_t btree_node::order() const
 {
-  return pointers.size() / 2;
+  return keys.size();
 }
 
 uint32_t btree_node::place_for(const sha1_t& sha1) const
@@ -54,7 +54,7 @@ uint32_t btree_node::place_for(const sha1_t& sha1) const
 
 bool btree_node::is_full() const
 {
-  return keys_count == 2 * t() - 1;
+  return keys_count == order();
 }
 
 bool btree_node::contains(const sha1_t& sha1) const

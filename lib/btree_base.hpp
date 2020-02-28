@@ -8,31 +8,31 @@ template <typename DataStorage>
 class btree_base
 {
 public:
-  explicit btree_base(DataStorage& storage, uint32_t t)
+  explicit btree_base(DataStorage& storage, uint32_t order)
     : m_storage{ storage }
-    , m_t{ t }
+    , m_order{ order }
   {
     m_storage.seek_in(0u);
-    m_storage.write(&m_t, sizeof(m_t));
+    m_storage.write(&m_order, sizeof(m_order));
   }
 
 protected:
   void set_root_ptr(btree_node::pointer_t ptr)
   {
     m_root_ptr = ptr;
-    constexpr auto root_ptr_offset = sizeof(m_t);
+    constexpr auto root_ptr_offset = sizeof(m_order);
     m_storage.seek_out(root_ptr_offset);
     m_storage.write(&m_root_ptr, sizeof(btree_node::pointer_t));
   }
 
   btree_node read_node(btree_node::pointer_t ptr)
   {
-    const auto pointers_size = btree_node::binary_pointers_size(this->t());
-    const auto keys_size = btree_node::binary_keys_size(this->t());
+    const auto pointers_size = btree_node::binary_pointers_size(this->order());
+    const auto keys_size = btree_node::binary_keys_size(this->order());
     const uint64_t node_place =
-      uint64_t{ tree_offset() } + uint64_t{ btree_node::binary_size(m_t) } * uint64_t{ ptr };
+      uint64_t{ tree_offset() } + uint64_t{ btree_node::binary_size(m_order) } * uint64_t{ ptr };
 
-    btree_node node{ this->t(), btree_node::k_unused_pointer };
+    btree_node node{ this->order(), btree_node::k_unused_pointer };
 
     m_storage.seek_in(node_place);
     m_storage.read(&node.is_leaf, sizeof(node.is_leaf));
@@ -48,10 +48,10 @@ protected:
 
   void write_node(const btree_node& node)
   {
-    const auto pointers_size = btree_node::binary_pointers_size(m_t);
-    const auto keys_size = btree_node::binary_keys_size(m_t);
+    const auto pointers_size = btree_node::binary_pointers_size(m_order);
+    const auto keys_size = btree_node::binary_keys_size(m_order);
     const uint64_t node_place =
-      tree_offset() + uint64_t{ btree_node::binary_size(m_t) } * uint64_t{ node.this_pointer };
+      tree_offset() + uint64_t{ btree_node::binary_size(m_order) } * uint64_t{ node.this_pointer };
 
     m_storage.seek_out(node_place);
 
@@ -64,12 +64,12 @@ protected:
 
   constexpr uint64_t tree_offset() const
   {
-    return sizeof(m_t) + sizeof(m_root_ptr);
+    return sizeof(m_order) + sizeof(m_root_ptr);
   }
 
-  uint32_t t() const
+  uint32_t order() const
   {
-    return m_t;
+    return m_order;
   }
 
   btree_node::pointer_t root_ptr() const
@@ -79,7 +79,7 @@ protected:
 
 private:
   DataStorage& m_storage;
-  unsigned m_t{};
+  uint32_t m_order{};
   btree_node::pointer_t m_root_ptr{ 0u };
 };
 }
