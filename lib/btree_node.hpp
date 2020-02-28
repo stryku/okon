@@ -18,7 +18,6 @@ public:
   static uint64_t binary_pointers_size(unsigned order);
   static uint64_t binary_keys_size(unsigned order);
 
-  // Assumes that this is a leaf node.
   uint32_t insert(const sha1_t& sha1);
 
   uint32_t order() const;
