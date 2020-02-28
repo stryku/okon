@@ -279,7 +279,7 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3AndNextChild)
   EXPECT_THAT(storage.m_storage, StorageEq(expected_storage));
 }
 
-TEST(BtreeSortedKeysInserter, Foo)
+TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3AndAllRootChildren)
 {
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };

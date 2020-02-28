@@ -5,8 +5,7 @@ Utilities for blazing fast offline searching for SHA1 keys in Have I Been Pwned 
 a SHA1 hash, a colon and some number, e.g. `0000000000000000000000000000000000000000:68181`)
 
 # How it works
-Before you can search for you SHA1 hash in the database, an one-time special step has to be done.
-You need to process the downloaded database. Then, when it's done, you can search for hashes in the prepared file.
+Before you can search for a SHA1 hash in the database, the database needs to be processed.
 Please check [usage](#Usage) section for details.
 
 # Utilities
