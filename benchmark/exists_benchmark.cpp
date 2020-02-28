@@ -41,7 +41,8 @@ static void exists_btree(benchmark::State& state)
       "/media/stryku/tb_disk/haveibeenpwned/prepared_full_btree/btree"
     };
     okon::btree<okon::fstream_wrapper> tree{ wrapper };
-    const auto result = tree.contains(okon::to_sha1("0E115FEEAB9474B9D680E5528024201AF6E7722F"));
+    const auto result =
+      tree.contains(okon::string_sha1_to_binary("0E115FEEAB9474B9D680E5528024201AF6E7722F"));
     benchmark::DoNotOptimize(result);
   }
 }

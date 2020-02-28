@@ -101,7 +101,7 @@ inline btree_node make_node(bool is_leaf, uint32_t keys_count,
 
   node.keys.clear();
   std::transform(std::cbegin(keys), std::cend(keys), std::back_inserter(node.keys),
-                 [](std::string_view sha1) { return to_sha1(sha1); });
+                 [](std::string_view sha1) { return string_sha1_to_binary(sha1); });
 
   node.parent_pointer = parent_ptr;
 

@@ -11,7 +11,7 @@ TEST(BtreeSortedKeysInserter, SingleInsertion_CreatesOneRootNode)
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };
 
-  tree.insert_sorted(to_sha1("0000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
   tree.finalize_inserting();
 
   const auto expected_nodes = { make_node(
@@ -28,8 +28,8 @@ TEST(BtreeSortedKeysInserter, InsertionsTillFullNode_CreatesOneRootNode)
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };
 
-  tree.insert_sorted(to_sha1("0000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("1000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
   tree.finalize_inserting();
 
   const auto expected_nodes = { make_node(
@@ -47,9 +47,9 @@ TEST(BtreeSortedKeysInserter, InsertionsExceedFullNodeByOne_CreatesRootNodeWithT
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };
 
-  tree.insert_sorted(to_sha1("0000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("1000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("2000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("2000000000000000000000000000000000000000"));
   tree.finalize_inserting();
 
   const auto left_child_ptr = 0u;
@@ -83,11 +83,11 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTwoFullChildren_CreatesRootNodeWithT
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };
 
-  tree.insert_sorted(to_sha1("0000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("1000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("2000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("3000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("4000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("2000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("3000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("4000000000000000000000000000000000000000"));
   tree.finalize_inserting();
 
   const auto left_child_ptr = 0u;
@@ -123,12 +123,12 @@ TEST(BtreeSortedKeysInserter,
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };
 
-  tree.insert_sorted(to_sha1("0000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("1000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("2000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("3000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("4000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("5000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("2000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("3000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("4000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("5000000000000000000000000000000000000000"));
   tree.finalize_inserting();
 
   const auto left_child_ptr = 0u;
@@ -170,15 +170,15 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3)
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };
 
-  tree.insert_sorted(to_sha1("0000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("1000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("2000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("3000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("4000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("5000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("6000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("7000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("8000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("2000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("3000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("4000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("5000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("6000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("7000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("8000000000000000000000000000000000000000"));
   tree.finalize_inserting();
 
   const auto root_ptr = 4u;
@@ -227,16 +227,16 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3AndNextChild)
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };
 
-  tree.insert_sorted(to_sha1("0000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("1000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("2000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("3000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("4000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("5000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("6000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("7000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("8000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("9000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("2000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("3000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("4000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("5000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("6000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("7000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("8000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("9000000000000000000000000000000000000000"));
   tree.finalize_inserting();
 
   const auto root_ptr = 4u;
@@ -284,25 +284,25 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3AndAllRootChildren)
   memory_storage storage;
   btree_sorted_keys_inserter tree{ storage, k_test_order_value };
 
-  tree.insert_sorted(to_sha1("0000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("1000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("2000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("3000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("4000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("5000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("6000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("7000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("8000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("9000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("A000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("B000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("C000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("D000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("E000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("F000000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("F100000000000000000000000000000000000000")); // 16
-  tree.insert_sorted(to_sha1("F200000000000000000000000000000000000000"));
-  tree.insert_sorted(to_sha1("F300000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("2000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("3000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("4000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("5000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("6000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("7000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("8000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("9000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("A000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("B000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("C000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("D000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("E000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("F000000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("F100000000000000000000000000000000000000")); // 16
+  tree.insert_sorted(string_sha1_to_binary("F200000000000000000000000000000000000000"));
+  tree.insert_sorted(string_sha1_to_binary("F300000000000000000000000000000000000000"));
   tree.finalize_inserting();
 
   const auto root_ptr = 4u;

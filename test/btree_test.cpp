@@ -14,7 +14,8 @@ TEST(Btree, Contains_RootWithoutKey_ReturnsFalse)
   storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
 
   btree tree{ storage };
-  const auto result = tree.contains(to_sha1("1000000000000000000000000000000000000000"));
+  const auto result =
+    tree.contains(string_sha1_to_binary("1000000000000000000000000000000000000000"));
   EXPECT_FALSE(result);
 }
 
@@ -40,7 +41,8 @@ TEST(Btree, Contains_TreeOfHeightTwoWithoutKey_ReturnsFalse)
   storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
 
   btree tree{ storage };
-  const auto result = tree.contains(to_sha1("F000000000000000000000000000000000000000"));
+  const auto result =
+    tree.contains(string_sha1_to_binary("F000000000000000000000000000000000000000"));
   EXPECT_FALSE(result);
 }
 
@@ -55,7 +57,8 @@ TEST(Btree, Contains_KeyInRoot_ReturnsTrue)
   storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
 
   btree tree{ storage };
-  const auto result = tree.contains(to_sha1("0000000000000000000000000000000000000000"));
+  const auto result =
+    tree.contains(string_sha1_to_binary("0000000000000000000000000000000000000000"));
   EXPECT_TRUE(result);
 }
 
@@ -81,7 +84,8 @@ TEST(Btree, Contains_KeyInLeftLeafChild_ReturnsTrue)
   storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
 
   btree tree{ storage };
-  const auto result = tree.contains(to_sha1("1000000000000000000000000000000000000000"));
+  const auto result =
+    tree.contains(string_sha1_to_binary("1000000000000000000000000000000000000000"));
   EXPECT_TRUE(result);
 }
 
@@ -107,7 +111,8 @@ TEST(Btree, Contains_KeyInRightLeafChild_ReturnsTrue)
   storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
 
   btree tree{ storage };
-  const auto result = tree.contains(to_sha1("3000000000000000000000000000000000000000"));
+  const auto result =
+    tree.contains(string_sha1_to_binary("3000000000000000000000000000000000000000"));
   EXPECT_TRUE(result);
 }
 
@@ -172,7 +177,8 @@ TEST(Btree, Contains_KeyInNonLeafChildOfRoot_ReturnsTrue)
   storage.m_storage = to_storage(k_test_order_value, root_ptr, expected_nodes);
 
   btree tree{ storage };
-  const auto result = tree.contains(to_sha1("E000000000000000000000000000000000000000"));
+  const auto result =
+    tree.contains(string_sha1_to_binary("E000000000000000000000000000000000000000"));
   EXPECT_TRUE(result);
 }
 }

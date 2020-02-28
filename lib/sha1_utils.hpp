@@ -36,22 +36,20 @@ inline constexpr uint8_t char_to_index(char c)
   return static_cast<uint8_t>(c);
 }
 
-inline constexpr uint8_t chars_to_byte(const char* cs)
+inline constexpr uint8_t two_first_chars_to_byte(const char* cs)
 {
   uint8_t byte = static_cast<uint8_t>(char_to_index(cs[0])) << 4;
   byte |= char_to_index(cs[1]);
   return byte;
 }
 
-inline sha1_t to_sha1(std::string_view sha1_text)
+inline sha1_t string_sha1_to_binary(std::string_view sha1_text)
 {
   okon::sha1_t sha1;
 
   for (auto i = 0; i < 40; i += 2) {
-    sha1[i / 2] = okon::chars_to_byte(sha1_text.data() + i);
+    sha1[i / 2] = two_first_chars_to_byte(sha1_text.data() + i);
   }
-
-  //  std::memcpy(&sha1[0], sha1_txt.data(), 40);
 
   return sha1;
 }

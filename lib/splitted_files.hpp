@@ -18,26 +18,13 @@ public:
 
     for (auto& output_file : m_files) {
       output_file.open(path.data() + name, mode);
-
-      if (name[1] == '9') {
-        name[1] = 'A';
-      } else if (name[1] == 'F') {
-        name[1] = '0';
-
-        if (name[0] == '9') {
-          name[0] = 'A';
-        } else {
-          ++name[0];
-        }
-      } else {
-        ++name[1];
-      }
+      increment_name(name);
     }
   }
 
   std::fstream& sha1_file(std::string_view sha1)
   {
-    const auto file_index = chars_to_byte(sha1.data());
+    const auto file_index = two_first_chars_to_byte(sha1.data());
     return m_files[file_index];
   }
 
@@ -54,6 +41,24 @@ public:
   auto end()
   {
     return std::end(m_files);
+  }
+
+private:
+  void increment_name(std::string& current_name) const
+  {
+    if (current_name[1] == '9') {
+      current_name[1] = 'A';
+    } else if (current_name[1] == 'F') {
+      current_name[1] = '0';
+
+      if (current_name[0] == '9') {
+        current_name[0] = 'A';
+      } else {
+        ++current_name[0];
+      }
+    } else {
+      ++current_name[1];
+    }
   }
 
 private:

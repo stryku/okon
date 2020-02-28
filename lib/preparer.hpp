@@ -25,8 +25,6 @@ private:
   std::optional<std::string_view> get_next_sha1();
   void add_sha1_to_file(std::string_view sha1);
 
-  sha1_tail_t sha1_tail(std::string_view sha1) const;
-
   void sort_files();
   void process_sorted_files();
 
@@ -37,7 +35,6 @@ private:
   splitted_files m_output_files;
   fstream_wrapper m_file_wrapper;
   btree_sorted_keys_inserter<fstream_wrapper> m_btree;
-
   std::vector<std::vector<sha1_t>> m_sha1_buffers;
 };
 }

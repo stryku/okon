@@ -10,9 +10,9 @@
 #include <iostream>
 
 namespace {
-constexpr auto k_sha1_length{ 40u };
+constexpr auto k_string_sha1_length{ 40u };
 constexpr auto k_max_digit_length{ 15u };
-constexpr auto k_max_line_length{ k_sha1_length + k_max_digit_length + 2u }; // 2u for : and \0
+constexpr auto k_max_line_length{ k_string_sha1_length + k_max_digit_length + 1u }; // 1u for ':'
 
 std::array<char, k_max_line_length> line_buffer{};
 }
@@ -48,32 +48,18 @@ std::optional<std::string_view> preparer::get_next_sha1()
     return std::nullopt;
   }
 
-  return std::string_view{ &line_buffer[0], k_sha1_length };
+  return std::string_view{ &line_buffer[0], k_string_sha1_length };
 }
 
 void preparer::add_sha1_to_file(std::string_view sha1)
 {
-  const auto index = chars_to_byte(sha1.data());
-  m_sha1_buffers[index].emplace_back(to_sha1(sha1));
+  const auto index = two_first_chars_to_byte(sha1.data());
+  m_sha1_buffers[index].emplace_back(string_sha1_to_binary(sha1));
 
   if (m_sha1_buffers[index].size() > 1024 * 100) {
     write_sha1_buffer(index);
     m_sha1_buffers[index].clear();
   }
-}
-
-sha1_tail_t preparer::sha1_tail(std::string_view sha1) const
-{
-  sha1_tail_t bytes;
-
-  for (auto i = 2u; i < sha1.length(); i += 2) {
-    const auto byte_index = i / 2;
-    const auto byte_chars = std::next(sha1.data(), i);
-    const auto byte = chars_to_byte(byte_chars);
-    bytes[byte_index] = byte;
-  }
-
-  return bytes;
 }
 
 void preparer::sort_files()
@@ -116,12 +102,7 @@ void preparer::process_sorted_files()
 {
   std::vector<sha1_t> sha1s;
 
-  auto counter{ 0u };
-
   for (auto& file : m_output_files) {
-
-    std::cout << "Inserting to btree " << counter++ << '\n';
-
     file.seekp(0, std::ios::end);
     const std::streamsize file_size = file.tellp();
     const auto sha1_count = file_size / sizeof(sha1_t);
