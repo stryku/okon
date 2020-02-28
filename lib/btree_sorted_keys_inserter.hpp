@@ -39,17 +39,7 @@ private:
 
   btree_node split_node(btree_node& node, const sha1_t& sha1, unsigned level = 0u)
   {
-    /*
-     * 1. If root, move it to a new place and save pointer
-     *  1.1 Create new root, insert sha1 and make it left pointer to old root new place.
-     *
-     * 2. If not root
-     *  2.2 Go to parent.
-     *  2.3 If parent have place for key. Add key and create new child. Make right of key point to
-     * new child. 2.4 If parent have no place for key, split.
-     */
     const auto is_root = (node.this_pointer == this->root_ptr());
-
     if (is_root) {
 
       const auto new_root_ptr = new_node_pointer();
