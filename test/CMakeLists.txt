@@ -15,3 +15,8 @@ target_include_directories(sorted_insert_test
     PRIVATE
         ${OKON_DIR}
 )
+
+option(OKON_WITH_HEAVY_TEST "Add heavy test target" OFF)
+if(OKON_WITH_HEAVY_TEST)
+    add_subdirectory(heavy_test)
+endif()
