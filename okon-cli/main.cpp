@@ -131,5 +131,5 @@ int main(int argc, const char* argv[])
     }
   }
 
-  return 2;
+  return 0;
 }
