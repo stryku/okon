@@ -12,8 +12,16 @@ public:
     : m_storage{ storage }
     , m_order{ order }
   {
-    m_storage.seek_in(0u);
+    m_storage.seek_out(0u);
     m_storage.write(&m_order, sizeof(m_order));
+  }
+
+  explicit btree_base(DataStorage& storage)
+    : m_storage{ storage }
+  {
+    m_storage.seek_in(0u);
+    m_storage.read(&m_order, sizeof(m_order));
+    m_storage.read(&m_root_ptr, sizeof(m_root_ptr));
   }
 
 protected:
@@ -25,7 +33,7 @@ protected:
     m_storage.write(&m_root_ptr, sizeof(btree_node::pointer_t));
   }
 
-  btree_node read_node(btree_node::pointer_t ptr)
+  btree_node read_node(btree_node::pointer_t ptr) const
   {
     const auto pointers_size = btree_node::binary_pointers_size(this->order());
     const auto keys_size = btree_node::binary_keys_size(this->order());
@@ -46,7 +54,7 @@ protected:
     return node;
   }
 
-  void write_node(const btree_node& node)
+  void write_node(const btree_node& node) const
   {
     const auto pointers_size = btree_node::binary_pointers_size(m_order);
     const auto keys_size = btree_node::binary_keys_size(m_order);
