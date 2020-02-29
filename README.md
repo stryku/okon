@@ -70,4 +70,8 @@ Then, even with a couple-GB file searching is really fast.
 CMake and C++17 are required.
 
 CMake options:
-* OKON_WITH_CLI -
+* OKON_WITH_CLI - Build okon-cli binary.
+* OKON_WITH_BENCHMARKS - Build benchmarks (requires googlebenchmark).
+* OKON_WITH_TESTS - Build tests.
+* OKON_WITH_HEAVY_TEST - Add target for heavy test. Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file. 
+
