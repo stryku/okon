@@ -22,7 +22,7 @@ endfunction()
 okon_add_test(sorted_insert_test btree_sorted_keys_inserter_test.cpp)
 okon_add_test(btree_test btree_test.cpp)
 
-option(OKON_WITH_HEAVY_TEST "Add heavy test target" OFF)
+option(OKON_WITH_HEAVY_TEST "Add heavy test target (requires python3)" OFF)
 if(OKON_WITH_HEAVY_TEST)
     add_subdirectory(heavy_test)
 endif()

@@ -4,29 +4,44 @@
 #include "fstream_wrapper.hpp"
 #include "preparer.hpp"
 
-int okon_prepare(const char* input_db_file_path, const char* working_directory,
-                 const char* output_processed_file_path)
+okon_prepare_result okon_prepare(const char* input_db_file_path, const char* working_directory,
+                                 const char* output_processed_file_path)
 {
   std::ofstream{ output_processed_file_path };
   okon::preparer preparer{ input_db_file_path, working_directory, output_processed_file_path };
-  preparer.prepare();
+  const auto result = preparer.prepare();
 
-  return 0;
+  switch (result) {
+    case okon::preparer::result ::success:
+      return okon_prepare_result ::okon_prepare_result_success;
+    case okon::preparer::result ::could_not_open_input_file:
+      return okon_prepare_result ::okon_prepare_result_could_not_open_input_file;
+    case okon::preparer::result ::could_not_open_intermediate_files:
+      return okon_prepare_result ::okon_prepare_result_could_not_open_intermediate_files;
+    case okon::preparer::result ::could_not_open_output:
+      return okon_prepare_result ::okon_prepare_result_could_not_open_output;
+  }
 }
 
-int okon_exists_text(const char* sha1, const char* processed_file_path)
+okon_exists_result okon_exists_text(const char* sha1, const char* processed_file_path)
 {
   const auto sha1_bin = okon::string_sha1_to_binary(sha1);
   return okon_exists_binary(sha1_bin.data(), processed_file_path);
 }
 
-int okon_exists_binary(const void* sha1, const char* processed_file_path)
+okon_exists_result okon_exists_binary(const void* sha1, const char* processed_file_path)
 {
   okon::fstream_wrapper file{ processed_file_path };
+
+  if (!file.is_open()) {
+    return okon_exists_result::okon_prepare_result_could_not_open_file;
+  }
+
   okon::btree tree{ file };
 
   okon::sha1_t sha1_bin;
   std::memcpy(&sha1_bin[0], sha1, 20u);
 
-  return tree.contains(sha1_bin) ? 1 : 0;
+  return tree.contains(sha1_bin) ? okon_exists_result::okon_exists_result_exists
+                                 : okon_exists_result::okon_exists_result_doesnt_exist;
 }

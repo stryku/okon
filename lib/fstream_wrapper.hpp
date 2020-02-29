@@ -38,9 +38,15 @@ public:
   {
     return m_file.tellg();
   }
+
   pos_type_t tell_out()
   {
     return m_file.tellp();
+  }
+
+  bool is_open() const
+  {
+    return m_file.is_open();
   }
 
 private:

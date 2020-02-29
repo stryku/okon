@@ -21,15 +21,27 @@ namespace okon {
 preparer::preparer(std::string_view input_file_path, std::string_view working_directory_path,
                    std::string_view output_file_path)
   : m_input_file{ input_file_path.data() }
-  , m_output_files{ working_directory_path, std::ios::in | std::ios::out | std::ios::trunc }
-  , m_file_wrapper{ output_file_path }
-  , m_btree{ m_file_wrapper, 2048u }
+  , m_intermediate_files{ working_directory_path, std::ios::in | std::ios::out | std::ios::trunc }
+  , m_output_file_wrapper{ output_file_path }
+  , m_btree{ m_output_file_wrapper, 2048u }
   , m_sha1_buffers{ 256u }
 {
 }
 
-void preparer::prepare()
+preparer::result preparer::prepare()
 {
+  if (!m_input_file.is_open()) {
+    return result::could_not_open_input_file;
+  }
+
+  if (!m_intermediate_files.are_all_open()) {
+    return result::could_not_open_intermediate_files;
+  }
+
+  if (!m_output_file_wrapper.is_open()) {
+    return result::could_not_open_output;
+  }
+
   while (const auto sha1 = get_next_sha1()) {
     add_sha1_to_file(*sha1);
   }
@@ -40,6 +52,8 @@ void preparer::prepare()
 
   sort_files();
   process_sorted_files();
+
+  return result::success;
 }
 
 std::optional<std::string_view> preparer::get_next_sha1()
@@ -72,7 +86,7 @@ void preparer::sort_files()
     std::vector<sha1_t> sha1s;
 
     for (auto i = start_index; i < start_index + 64; ++i) {
-      auto& file = *(std::next(m_output_files.begin(), i));
+      auto& file = *(std::next(m_intermediate_files.begin(), i));
       const std::streamsize file_size = file.tellp();
       const auto sha1_count = file_size / sizeof(sha1_t);
       sha1s.resize(sha1_count);
@@ -102,7 +116,7 @@ void preparer::process_sorted_files()
 {
   std::vector<sha1_t> sha1s;
 
-  for (auto& file : m_output_files) {
+  for (auto& file : m_intermediate_files) {
     file.seekp(0, std::ios::end);
     const std::streamsize file_size = file.tellp();
     const auto sha1_count = file_size / sizeof(sha1_t);
@@ -120,7 +134,7 @@ void preparer::process_sorted_files()
 
 void preparer::write_sha1_buffer(unsigned buffer_index)
 {
-  auto& file = m_output_files[buffer_index];
+  auto& file = m_intermediate_files[buffer_index];
   file.write(reinterpret_cast<const char*>(m_sha1_buffers[buffer_index][0].data()),
              sizeof(sha1_t) * m_sha1_buffers[buffer_index].size());
 }

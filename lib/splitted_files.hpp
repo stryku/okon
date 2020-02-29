@@ -28,6 +28,8 @@ public:
     return std::end(m_files);
   }
 
+  bool are_all_open() const;
+
 private:
   void increment_name(std::string& current_name) const;
 

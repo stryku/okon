@@ -1,5 +1,7 @@
 #include "splitted_files.hpp"
 
+#include <algorithm>
+
 namespace okon {
 
 splitted_files::splitted_files(std::string_view path, std::ios::openmode mode)
@@ -38,5 +40,11 @@ void splitted_files::increment_name(std::string& current_name) const
   } else {
     ++current_name[1];
   }
+}
+
+bool splitted_files::are_all_open() const
+{
+  return std::all_of(std::cbegin(m_files), std::cend(m_files),
+                     [](const auto& file) { return file.is_open(); });
 }
 }

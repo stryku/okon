@@ -54,47 +54,46 @@ std::optional<parsed_args_t> parse_args(const std::vector<std::string_view>& arg
   return result;
 }
 
-bool handle_prepare(const parsed_args_t& args)
+okon_prepare_result handle_prepare(const parsed_args_t& args)
 {
   const auto found_prepare = args.find("--prepare");
   if (found_prepare == std::cend(args)) {
     std::cerr << "expected --prepare argument";
-    return false;
+    return okon_prepare_result::okon_prepare_result_could_not_open_input_file;
   }
 
   const auto found_wd = args.find("--wd");
   if (found_wd == std::cend(args)) {
     std::cerr << "expected --wd argument";
-    return false;
+    return okon_prepare_result::okon_prepare_result_could_not_open_intermediate_files;
   }
 
   const auto found_output = args.find("--output");
   if (found_output == std::cend(args)) {
     std::cerr << "expected --output argument";
-    return false;
+    return okon_prepare_result::okon_prepare_result_could_not_open_output;
   }
 
   const auto input_file_path = found_prepare->second;
   const auto working_directory_path = found_wd->second;
   const auto output_file_directory = found_output->second;
 
-  const auto result = okon_prepare(input_file_path.data(), working_directory_path.data(),
-                                   output_file_directory.data());
-  return !result;
+  return okon_prepare(input_file_path.data(), working_directory_path.data(),
+                      output_file_directory.data());
 }
 
-bool handle_check(const parsed_args_t& args)
+int handle_check(const parsed_args_t& args)
 {
   const auto found_path = args.find("--path");
   if (found_path == std::cend(args)) {
     std::cerr << "expected --path argument";
-    return false;
+    return okon_exists_result ::okon_prepare_result_could_not_open_file;
   }
 
   const auto found_hash = args.find("--hash");
   if (found_hash == std::cend(args)) {
     std::cerr << "expected --hash argument";
-    return false;
+    return -1;
   }
 
   const auto file_path = found_path->second;
@@ -104,12 +103,17 @@ bool handle_check(const parsed_args_t& args)
 
 void print_help()
 {
-  std::cout << "To prepare a downloaded database:\n"
-               "okon-cli --prepare path/to/downloaded/file.txt --wd path/to/working_directory "
-               "--output path/to/prepared/file.okon\n"
-               "To check whether a hash exists:\n"
-               "okon-cli --path path/to/prepared/file.okon --hash "
-               "0000000000000000000000000000000000000000\n";
+  std::cout
+    << "To prepare a downloaded database:\n"
+       "okon-cli --prepare path/to/downloaded/file.txt --wd path/to/working_directory "
+       "--output path/to/prepared/file.okon\n"
+       "In case of an error, exit value is set to the error value.\n\n"
+       "To check whether a hash exists:\n"
+       "okon-cli --path path/to/prepared/file.okon --hash "
+       "0000000000000000000000000000000000000000\n"
+       "If the hash is present `okon-cli` will write `1` to stdout and set exit code to 1.\n"
+       "If the hash is NOT present `okon-cli` will write `0` to stdout and set exit code to 0.\n"
+       "In case of an error, exit value is set to the error value.";
 }
 
 int main(int argc, const char* argv[])
@@ -135,19 +139,25 @@ int main(int argc, const char* argv[])
 
   for (std::string_view argument : { "--prepare", "--wd", "--output" }) {
     if (parsed_args->find(argument) != std::cend(*parsed_args)) {
-      const auto success = handle_prepare(*parsed_args);
-      if (!success) {
-        return 2;
-      }
-      return 0;
+      return handle_prepare(*parsed_args);
     }
   }
 
   for (std::string_view argument : { "--path", "--hash" }) {
     if (parsed_args->find(argument) != std::cend(*parsed_args)) {
-      const auto found = handle_check(*parsed_args);
-      std::cout << (found ? 1 : 0) << '\n';
-      return found ? 1 : 0;
+      const auto result = handle_check(*parsed_args);
+      switch (result) {
+        case okon_exists_result::okon_exists_result_doesnt_exist:
+          std::cout << 0;
+          break;
+        case okon_exists_result::okon_exists_result_exists:
+          std::cout << 1;
+          break;
+        default:
+          break;
+      }
+
+      return result;
     }
   }
 
