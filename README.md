@@ -1,8 +1,8 @@
 # okon - overpowered key occurrence nailer
-Utilities for blazing fast offline searching for SHA1 keys in [Have I Been Pwned databases](https://haveibeenpwned.com/Passwords).
+Utilities for fast offline searching for SHA-1 keys in [Have I Been Pwned databases](https://haveibeenpwned.com/Passwords).
 
 (Actually, okon can handle any file that is formatted like HIBP files, which is in every line:
-a SHA1 hash, a colon and some number, e.g. `0000000000000000000000000000000000000000:68181`)
+a SHA-1 hash, a colon and some number, e.g. `0000000000000000000000000000000000000000:68181`)
 
 # Table of Contents
 - [okon - overpowered key occurence nailer](#okon---overpowered-key-occurence-nailer)
@@ -19,7 +19,7 @@ a SHA1 hash, a colon and some number, e.g. `000000000000000000000000000000000000
 # Benchmarks
 Benchmarks are based on database version 5, form [HIBP page](https://haveibeenpwned.com/Passwords) (8e1c0f161a756e409ec51a6fceefdc63d34cea01).
 
-Benchmarks are done on my PC (Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz, 16GB RAM), on HDD (NOT SSD).
+Benchmarks are done on my PC (Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz, 16GB RAM), on HDD (not SSD).
 `okon` and `C++ line by line` are done using [google/benchmark](https://github.com/google/benchmark) utils. You can find them in [benchmarks file](https://github.com/stryku/okon/blob/master/benchmark/exists_benchmark.cpp).
 
 Worst case. Find the hash that is on the last place in an original database:
@@ -32,7 +32,7 @@ Worst case. Find the hash that is on the last place in an original database:
 | C++ line by line | 138'535'890 | 271'788'218 |
 
 # How it works
-Before you search for a SHA1 hash in the database, the database needs to be processed. With the processed file, okon is able to quickly search for keys.
+Before you search for a SHA-1 hash in the database, the database needs to be processed. With the processed file, okon is able to quickly search for keys.
 Please check [usage](#Usage) section for details.
 
 # Utilities
