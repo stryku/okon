@@ -1,17 +1,12 @@
-#include <iostream>
-
-#include "btree.hpp"
-#include "btree_sorted_keys_inserter.hpp"
-#include "fstream_wrapper.hpp"
-#include "preparer.hpp"
-
 #include <okon/okon.h>
 
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 #include <iterator>
 #include <optional>
 #include <unordered_map>
+#include <vector>
 
 using parsed_args_t = std::unordered_map<std::string_view, std::string_view>;
 
@@ -19,23 +14,41 @@ std::optional<parsed_args_t> parse_args(const std::vector<std::string_view>& arg
 {
   parsed_args_t result;
 
-  const auto accepted_args = { std::string_view{ "--path" }, std::string_view{ "--hash" },
-                               std::string_view{ "--prepare" }, std::string_view{ "--wd" },
-                               std::string_view{ "--output" } };
+  struct arg_metadata
+  {
+    std::string_view name;
+    unsigned expected_value_count{ 1u };
+  };
 
-  for (auto i = 0u; i < args.size(); i += 2) {
-    if (std::find(std::cbegin(accepted_args), std::cend(accepted_args), args[i]) ==
-        std::cend(accepted_args)) {
+  const auto accepted_args = { arg_metadata{ "--path" },    arg_metadata{ "--hash" },
+                               arg_metadata{ "--prepare" }, arg_metadata{ "--wd" },
+                               arg_metadata{ "--output" },  arg_metadata{ "--help", 0u } };
+
+  const auto find_argument =
+    [&accepted_args](std::string_view passed_argument) -> std::optional<arg_metadata> {
+    const auto pred = [&passed_argument](const arg_metadata& metadata) {
+      return metadata.name == passed_argument;
+    };
+
+    const auto found = std::find_if(std::cbegin(accepted_args), std::cend(accepted_args), pred);
+    return found == std::cend(accepted_args) ? std::optional<arg_metadata>{} : *found;
+  };
+
+  for (auto i = 0u; i < args.size();) {
+    const auto metadata = find_argument(args[i]);
+    if (!metadata) {
       std::cerr << "unknown argument: " << args[i].data() << '\n';
       return std::nullopt;
     }
 
-    if (i + 1 >= args.size()) {
+    if (i + metadata->expected_value_count >= args.size()) {
       std::cerr << "expected argument after: " << args[i].data() << '\n';
       return std::nullopt;
     }
 
-    result[args[i]] = args[i + 1];
+    result[args[i]] = args[i + metadata->expected_value_count];
+
+    i += metadata->expected_value_count + 1u;
   }
 
   return result;
@@ -89,6 +102,16 @@ bool handle_check(const parsed_args_t& args)
   return okon_exists_text(hash.data(), file_path.data());
 }
 
+void print_help()
+{
+  std::cout << "To prepare a downloaded database:\n"
+               "okon-cli --prepare path/to/downloaded/file.txt --wd path/to/working_directory "
+               "--output path/to/prepared/file.okon\n"
+               "To check whether a hash exists:\n"
+               "okon-cli --path path/to/prepared/file.okon --hash "
+               "0000000000000000000000000000000000000000\n";
+}
+
 int main(int argc, const char* argv[])
 {
   std::vector<std::string_view> args;
@@ -103,13 +126,20 @@ int main(int argc, const char* argv[])
     return 2;
   }
 
+  for (std::string_view argument : { "--help" }) {
+    if (parsed_args->find(argument) != std::cend(*parsed_args)) {
+      print_help();
+      return 0;
+    }
+  }
+
   for (std::string_view argument : { "--prepare", "--wd", "--output" }) {
     if (parsed_args->find(argument) != std::cend(*parsed_args)) {
       const auto success = handle_prepare(*parsed_args);
       if (!success) {
         return 2;
       }
-      break;
+      return 0;
     }
   }
 
@@ -120,6 +150,8 @@ int main(int argc, const char* argv[])
       return found ? 1 : 0;
     }
   }
+
+  print_help();
 
   return 0;
 }
