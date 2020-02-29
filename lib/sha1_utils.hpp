@@ -6,17 +6,7 @@
 #include <cstring>
 
 namespace okon {
-
-using text_sha1_t = std::array<char, 40>;
-using binary_sha1_t = std::array<uint8_t, 20u>;
-using sha1_t = binary_sha1_t;
-
-using sha1_tail_t = std::array<uint8_t, 19u>;
-
-inline bool operator<(const sha1_t& lhs, const sha1_t& rhs)
-{
-  return std::memcmp(lhs.data(), rhs.data(), sizeof(sha1_t));
-}
+using sha1_t = std::array<uint8_t, 20u>;
 
 inline constexpr uint8_t char_to_index(char c)
 {
@@ -54,7 +44,7 @@ inline sha1_t string_sha1_to_binary(std::string_view sha1_text)
   return sha1;
 }
 
-inline std::string binary_sha1_to_string(const binary_sha1_t& sha1)
+inline std::string binary_sha1_to_string(const sha1_t& sha1)
 {
   std::string result;
 
