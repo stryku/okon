@@ -9,6 +9,7 @@ add_library(okon STATIC
     preparer.hpp
     sha1_utils.hpp
     splitted_files.hpp
+    splitted_files.cpp
 )
 
 target_link_libraries(okon
