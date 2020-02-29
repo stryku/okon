@@ -5,13 +5,13 @@
 namespace okon::test {
 TEST(Btree, Contains_RootWithoutKey_ReturnsFalse)
 {
-  const auto expected_nodes = { make_node(
+  const std::vector<btree_node> nodes = { make_node(
     /*is_leaf=*/true, /*keys_count=*/1u,
     { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
     { "0000000000000000000000000000000000000000", k_empty_sha1 }, btree_node::k_unused_pointer) };
 
   memory_storage storage;
-  storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
+  storage.m_storage = to_storage(k_test_order_value, 0u, nodes);
 
   btree tree{ storage };
   const auto result =
@@ -21,7 +21,7 @@ TEST(Btree, Contains_RootWithoutKey_ReturnsFalse)
 
 TEST(Btree, Contains_TreeOfHeightTwoWithoutKey_ReturnsFalse)
 {
-  const auto expected_nodes = {
+  const std::vector<btree_node> nodes = {
     make_node(
       /*is_leaf=*/false, /*keys_count=*/1u, { 1u, 2u, btree_node::k_unused_pointer },
       { "2000000000000000000000000000000000000000", k_empty_sha1 }, btree_node::k_unused_pointer),
@@ -38,7 +38,7 @@ TEST(Btree, Contains_TreeOfHeightTwoWithoutKey_ReturnsFalse)
   };
 
   memory_storage storage;
-  storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
+  storage.m_storage = to_storage(k_test_order_value, 0u, nodes);
 
   btree tree{ storage };
   const auto result =
@@ -48,13 +48,13 @@ TEST(Btree, Contains_TreeOfHeightTwoWithoutKey_ReturnsFalse)
 
 TEST(Btree, Contains_KeyInRoot_ReturnsTrue)
 {
-  const auto expected_nodes = { make_node(
+  const std::vector<btree_node> nodes = { make_node(
     /*is_leaf=*/true, /*keys_count=*/1u,
     { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
     { "0000000000000000000000000000000000000000", k_empty_sha1 }, btree_node::k_unused_pointer) };
 
   memory_storage storage;
-  storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
+  storage.m_storage = to_storage(k_test_order_value, 0u, nodes);
 
   btree tree{ storage };
   const auto result =
@@ -64,7 +64,7 @@ TEST(Btree, Contains_KeyInRoot_ReturnsTrue)
 
 TEST(Btree, Contains_KeyInLeftLeafChild_ReturnsTrue)
 {
-  const auto expected_nodes = {
+  const std::vector<btree_node> nodes = {
     make_node(
       /*is_leaf=*/false, /*keys_count=*/1u, { 1u, 2u, btree_node::k_unused_pointer },
       { "2000000000000000000000000000000000000000", k_empty_sha1 }, btree_node::k_unused_pointer),
@@ -81,7 +81,7 @@ TEST(Btree, Contains_KeyInLeftLeafChild_ReturnsTrue)
   };
 
   memory_storage storage;
-  storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
+  storage.m_storage = to_storage(k_test_order_value, 0u, nodes);
 
   btree tree{ storage };
   const auto result =
@@ -91,7 +91,7 @@ TEST(Btree, Contains_KeyInLeftLeafChild_ReturnsTrue)
 
 TEST(Btree, Contains_KeyInRightLeafChild_ReturnsTrue)
 {
-  const auto expected_nodes = {
+  const std::vector<btree_node> nodes = {
     make_node(
       /*is_leaf=*/false, /*keys_count=*/1u, { 1u, 2u, btree_node::k_unused_pointer },
       { "2000000000000000000000000000000000000000", k_empty_sha1 }, btree_node::k_unused_pointer),
@@ -108,7 +108,7 @@ TEST(Btree, Contains_KeyInRightLeafChild_ReturnsTrue)
   };
 
   memory_storage storage;
-  storage.m_storage = to_storage(k_test_order_value, 0u, expected_nodes);
+  storage.m_storage = to_storage(k_test_order_value, 0u, nodes);
 
   btree tree{ storage };
   const auto result =
@@ -120,7 +120,7 @@ TEST(Btree, Contains_KeyInNonLeafChildOfRoot_ReturnsTrue)
 {
   const auto root_ptr = 4u;
 
-  const auto expected_nodes = {
+  const std::vector<btree_node> nodes = {
     make_node(
       /*is_leaf=*/true, /*keys_count=*/2u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
@@ -174,7 +174,7 @@ TEST(Btree, Contains_KeyInNonLeafChildOfRoot_ReturnsTrue)
   };
 
   memory_storage storage;
-  storage.m_storage = to_storage(k_test_order_value, root_ptr, expected_nodes);
+  storage.m_storage = to_storage(k_test_order_value, root_ptr, nodes);
 
   btree tree{ storage };
   const auto result =
