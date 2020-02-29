@@ -62,7 +62,7 @@ If the hash is NOT present `okon-cli` will write `0` to stdout and set exit code
 # How it really works
 We're lucky guys. SHA1 hashes have two very, very nice traits. They are comparable and all of them are of the same size \o/
 
-Thanks to that, having a bunch of hashes we're able to create a B-tree out of them. And that's exactly what happens in the 'preparing step'. You take several houndred million hashes and insert them in a file which is logically represented as a B-tree.
+Thanks to that, having a bunch of hashes we're able to create a B-tree out of them. And that's exactly what happens in the 'preparing step'. You take several hundred million hashes and insert them in a file which is logically represented as a B-tree.
 Then, even with a couple-GB file searching is really fast.
 
 # Building
