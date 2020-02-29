@@ -4,7 +4,6 @@
 #include "btree_sorted_keys_inserter.hpp"
 #include "fstream_wrapper.hpp"
 #include "preparer.hpp"
-#include "pwned_sonic.hpp"
 
 #include <okon/okon.h>
 
@@ -13,15 +12,6 @@
 #include <iterator>
 #include <optional>
 #include <unordered_map>
-
-auto to_sha1(std::string_view sha1_txt)
-{
-  okon::sha1_t sha1;
-
-  std::memcpy(&sha1[0], sha1_txt.data(), 40);
-
-  return sha1;
-}
 
 using parsed_args_t = std::unordered_map<std::string_view, std::string_view>;
 

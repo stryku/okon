@@ -7,8 +7,6 @@ add_library(okon STATIC
     okon.cpp
     preparer.cpp
     preparer.hpp
-    pwned_sonic.cpp
-    pwned_sonic.hpp
     sha1_utils.hpp
     splitted_files.hpp
 )
