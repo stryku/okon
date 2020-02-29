@@ -1,18 +1,44 @@
 # okon - overpowered key occurence nailer
-Utilities for blazing fast offline searching for SHA1 keys in Have I Been Pwned databases.
+Utilities for blazing fast offline searching for SHA1 keys in [Have I Been Pwned databases](https://haveibeenpwned.com/Passwords).
 
-(Actually okon can handle any file that is formatted like HIBP files, which is in every line:
+(Actually, okon can handle any file that is formatted like HIBP files, which is in every line:
 a SHA1 hash, a colon and some number, e.g. `0000000000000000000000000000000000000000:68181`)
 
+# Table of Contents
+- [okon - overpowered key occurence nailer](#okon---overpowered-key-occurence-nailer)
+- [Table of Contents](#table-of-contents)
+- [Benchmarks](#benchmarks)
+- [How it works](#how-it-works)
+- [Utilities](#utilities)
+- [Usage](#usage)
+  * [Library](#library)
+  * [Command line interface](#command-line-interface)
+- [How it really works](#how-it-really-works)
+
+
+# Benchmarks
+Benchmarks are based on database version 5, form [HIBP page](https://haveibeenpwned.com/Passwords) (8e1c0f161a756e409ec51a6fceefdc63d34cea01).
+
+Benchmarks are done on my PC (Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz, 16GB RAM), on HDD (NOT SSD).
+`okon` and `C++ line by line` are done using [google/benchmark](https://github.com/google/benchmark) utils. You can find them in [benchmarks file](https://github.com/stryku/okon/blob/master/benchmark/exists_benchmark.cpp).
+
+Worst case. Find hash that is on the last place in original database:
+
+|                  |   time [μs] |           % |
+|-----------------:|------------:|------------:|
+|             okon |          51 |         100 |
+|             grep |  34'200'000 |  67'095'660 |
+|     grep '^hash' |  38'380'000 |  75'296'241 |
+| C++ line by line | 138'535'890 | 271'788'218 |
+
 # How it works
-Before you can search for a SHA1 hash in the database, the database needs to be processed.
+Before you search for a SHA1 hash in the database, the database needs to be processed. With the processed file, okon is able to quickly search for keys.
 Please check [usage](#Usage) section for details.
 
 # Utilities
-okon consists of two things: a library and binary.
+okon consists of two things: a library and a binary.
 
 * Library: a library with C language interface. It can be easily integrated into an existing codebase.
-
 * Binary: `okon-cli` is a binary that implements command line interface. You can do everything what the `okon` library can.
 
 # Usage
@@ -39,3 +65,4 @@ We're lucky guys. SHA1 hashes have two very, very nice traits. They are comparab
 
 Thanks to that, having a bunch of hashes we're able to create a B-tree out of them. And that's exactly what happens in the 'preparing step'. You take several houndred million hashes and insert them in a file which is logically represented as a B-tree.
 Then, even with a couple-GB file searching is really fast.
+
