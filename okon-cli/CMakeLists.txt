@@ -17,6 +17,5 @@ include(GNUInstallDirs)
 
 install(
         TARGETS okon-cli
-        PUBLIC_HEADER
-        DESTINATION ${CMAKE_INSTALL_BINDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
