@@ -1,4 +1,4 @@
-# okon - overpowered key occurence nailer
+# okon - overpowered key occurrence nailer
 Utilities for blazing fast offline searching for SHA1 keys in [Have I Been Pwned databases](https://haveibeenpwned.com/Passwords).
 
 (Actually, okon can handle any file that is formatted like HIBP files, which is in every line:
@@ -59,7 +59,6 @@ okon-cli --path path/to/prepared/file.okon --hash 000000000000000000000000000000
 If the hash is present `okon-cli` will write `1` to stdout and set exit code to 1.
 If the hash is NOT present `okon-cli` will write `0` to stdout and set exit code to 0.
 
-
 # How it really works
 We're lucky guys. SHA1 hashes have two very, very nice traits. They are comparable and all of them are of the same size \o/
 
@@ -73,5 +72,16 @@ CMake options:
 * OKON_WITH_CLI - Build okon-cli binary.
 * OKON_WITH_BENCHMARKS - Build benchmarks (requires googlebenchmark).
 * OKON_WITH_TESTS - Build tests.
-* OKON_WITH_HEAVY_TEST - Add target for heavy test. Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file. 
+* OKON_WITH_HEAVY_TEST - Add target for heavy test. Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file.
 
+Building routine:
+```sh
+git clone https://github.com/stryku/okon
+mkdir build && cd build
+cmake ../okon -DOKON_WITH_CLI=ON -DCMAKE_CXX_COMPILER=<COMPILER SUPPORTING C++17> -DCMAKE_INSTALL_PREFIX=../../install
+make install
+
+# Verify that okon-cli has been built
+cd ../../install/bin
+./okon-cli --help
+```
