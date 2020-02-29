@@ -1,0 +1,49 @@
+language: cpp
+python: 3.7
+dist: xenial
+sudo: true
+
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-xenial-7
+            - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-7 main'
+              key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
+          packages:
+            - libstdc++-7-dev
+            - clang-7
+            - valgrind
+      env:
+        - MATRIX_EVAL="CC=clang-7 && CXX=clang++-7"
+
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+            - libpng-dev
+            - valgrind
+      env:
+        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - LINKER_FLAGS=""
+
+before_install:
+  - eval "${MATRIX_EVAL}"
+
+script:
+  # set( CMAKE_CXX_STANDARD 17 ) support is required, so let's just download one of the latest CMake releases.
+  - wget https://github.com/Kitware/CMake/releases/download/v3.15.4/cmake-3.15.4-Linux-x86_64.sh
+  - chmod +x cmake-3.15.4-Linux-x86_64.sh
+  - ./cmake-3.15.4-Linux-x86_64.sh --skip-license
+
+  # Build the CMakeSL
+  - mkdir build && cd build
+  - cmake .. -DOKON_WITH_CLI=ON -DOKON_WITH_TESTS=ON
+  - make
+  - ctest -T memcheck
