@@ -8,7 +8,7 @@ template <typename DataStorage>
 class btree_base
 {
 public:
-  explicit btree_base(DataStorage& storage, uint32_t order);
+  explicit btree_base(DataStorage& storage, btree_node::order_t order);
   explicit btree_base(DataStorage& storage);
 
 protected:
@@ -19,16 +19,16 @@ protected:
   btree_node::pointer_t root_ptr() const;
   constexpr uint64_t tree_offset() const;
   uint64_t node_offset(btree_node::pointer_t ptr) const;
-  uint32_t order() const;
+  btree_node::order_t order() const;
 
 private:
   DataStorage& m_storage;
-  uint32_t m_order{};
+  btree_node::order_t m_order{};
   btree_node::pointer_t m_root_ptr{ 0u };
 };
 
 template <typename DataStorage>
-btree_base<DataStorage>::btree_base(DataStorage& storage, uint32_t order)
+btree_base<DataStorage>::btree_base(DataStorage& storage, btree_node::order_t order)
   : m_storage{ storage }
   , m_order{ order }
 {

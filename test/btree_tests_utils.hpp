@@ -8,7 +8,7 @@ namespace okon::test {
 constexpr auto k_file_metadata_size{ sizeof(uint32_t) +
                                      sizeof(btree_node::pointer_t) }; // t + root pointer
 constexpr std::string_view k_empty_sha1{ "0000000000000000000000000000000000000000" };
-constexpr uint32_t k_test_order_value{ 2u };
+constexpr btree_node::order_t k_test_order_value{ 2u };
 
 #pragma pack(push, 1)
 struct storage_metadata
@@ -17,7 +17,7 @@ struct storage_metadata
   btree_node::pointer_t root_ptr;
 };
 
-template <unsigned Order>
+template <btree_node::order_t Order>
 struct binary_node
 {
   bool is_leaf;
@@ -28,21 +28,21 @@ struct binary_node
 };
 #pragma pack(pop)
 
-template <unsigned Order>
+template <btree_node::order_t Order>
 struct decoded_storage
 {
   storage_metadata metadata;
   std::vector<binary_node<Order>> nodes;
 };
 
-inline std::vector<uint8_t> to_storage(uint32_t t, btree_node::pointer_t root_ptr,
+inline std::vector<uint8_t> to_storage(btree_node::order_t order, btree_node::pointer_t root_ptr,
                                        const std::vector<btree_node>& nodes)
 {
-  const auto pointers_size = btree_node::binary_pointers_size(t);
-  const auto keys_size = btree_node::binary_keys_size(t);
+  const auto pointers_size = btree_node::binary_pointers_size(order);
+  const auto keys_size = btree_node::binary_keys_size(order);
 
   std::vector<uint8_t> result;
-  result.resize(k_file_metadata_size + nodes.size() * btree_node::binary_size(t));
+  result.resize(k_file_metadata_size + nodes.size() * btree_node::binary_size(order));
 
   auto result_ptr = &result[0];
 
@@ -51,7 +51,7 @@ inline std::vector<uint8_t> to_storage(uint32_t t, btree_node::pointer_t root_pt
     std::advance(result_ptr, size);
   };
 
-  write(&t, sizeof(t));
+  write(&order, sizeof(order));
   write(&root_ptr, sizeof(root_ptr));
 
   for (const auto& node : nodes) {
@@ -65,7 +65,7 @@ inline std::vector<uint8_t> to_storage(uint32_t t, btree_node::pointer_t root_pt
   return result;
 }
 
-template <unsigned Order>
+template <btree_node::order_t Order>
 inline decoded_storage<Order> decode_storage(const std::vector<uint8_t>& binary_data)
 {
   using node_t = binary_node<Order>;

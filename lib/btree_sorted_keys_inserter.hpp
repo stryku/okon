@@ -9,7 +9,7 @@ template <typename DataStorage>
 class btree_sorted_keys_inserter : public btree_base<DataStorage>
 {
 public:
-  explicit btree_sorted_keys_inserter(DataStorage& storage, uint32_t order);
+  explicit btree_sorted_keys_inserter(DataStorage& storage, btree_node::order_t order);
 
   void insert_sorted(const sha1_t& sha1);
   void finalize_inserting();
@@ -27,7 +27,7 @@ private:
 
 template <typename DataStorage>
 btree_sorted_keys_inserter<DataStorage>::btree_sorted_keys_inserter(DataStorage& storage,
-                                                                    uint32_t order)
+                                                                    btree_node::order_t order)
   : btree_base<DataStorage>{ storage, order }
   , m_current_node{ order, btree_node::k_unused_pointer }
 {
