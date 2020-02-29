@@ -22,7 +22,7 @@ Benchmarks are based on database version 5, form [HIBP page](https://haveibeenpw
 Benchmarks are done on my PC (Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz, 16GB RAM), on HDD (NOT SSD).
 `okon` and `C++ line by line` are done using [google/benchmark](https://github.com/google/benchmark) utils. You can find them in [benchmarks file](https://github.com/stryku/okon/blob/master/benchmark/exists_benchmark.cpp).
 
-Worst case. Find hash that is on the last place in original database:
+Worst case. Find the hash that is on the last place in an original database:
 
 |                  |   time [μs] |           % |
 |-----------------:|------------:|------------:|
