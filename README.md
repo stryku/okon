@@ -63,16 +63,22 @@ If the hash is NOT present `okon-cli` will write `0` to stdout and set exit code
 We're lucky guys. SHA1 hashes have two very, very nice traits. They are comparable and all of them are of the same size \o/
 
 Thanks to that, having a bunch of hashes we're able to create a B-tree out of them. And that's exactly what happens in the 'preparing step'. You take several hundred million hashes and insert them in a file which is logically represented as a B-tree.
-Then, even with a couple-GB file searching is really fast.
+Then, even with a couple-GB file, searching is really fast.
 
 # Building
 CMake and C++17 are required.
 
 CMake options:
-* OKON_WITH_CLI - Build okon-cli binary.
-* OKON_WITH_BENCHMARKS - Build benchmarks (requires googlebenchmark).
-* OKON_WITH_TESTS - Build tests.
-* OKON_WITH_HEAVY_TEST - Add target for heavy test. Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file.
+- `OKON_WITH_CLI=ON/OFF` - Build okon-cli binary.
+- `OKON_WITH_TESTS=ON/OFF` - Build tests.
+- `OKON_WITH_HEAVY_TEST=ON/OFF` - Add target for heavy test (requires python3). Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file. If `OKON_WITH_HEAVY_TEST` is set to ON:
+  * `OKON_HEAVY_TEST_ORIGINAL_DB=path/to/file` - Path to a file containing original HIBP database, over which the heavy test should be run.
+- `OKON_WITH_BENCHMARKS=ON/OFF` - Build benchmarks (requires googlebenchmark). If `OKON_WITH_BENCHMARKS` is set to ON:
+  * `OKON_BENCHMARK_FILE=path/to/file` - Path to a file based on which benchmarks have to be run.
+  * `OKON_BENCHMARK_BEST_CASE=SHA-1` - Value of the first hash in file specified in `OKON_BENCHMARK_FILE`
+  * `OKON_BENCHMARK_WORST_CASE=SHA-1` - Value to the last hash in file specified in `OKON_BENCHMARK_FILE`
+  * `OKON_BENCHMARK_BTREE_FILE=path/to/file` - Path to a file prepared by okon, that should be used in benchmarks.
+- 
 
 Building routine:
 ```sh
