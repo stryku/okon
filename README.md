@@ -29,10 +29,10 @@ Worst case. Find the hash that is on the last place in an original database:
 
 |                  |   time [μs] |           % |
 |-----------------:|------------:|------------:|
-|             okon |          51 |         100 |
-|             grep |  34'200'000 |  67'095'660 |
-|     grep '^hash' |  38'380'000 |  75'296'241 |
-| C++ line by line | 138'535'890 | 271'788'218 |
+|             okon |          49 |         100 |
+| C++ line by line | 135'720'201 | 276'980'002 |
+|     grep '^hash' | 195'350'000 | 398'673'469 |
+|             grep | 195'480'000 | 398'938'775 |
 
 # How it works
 Before you search for a SHA-1 hash in the database, the database needs to be processed. With the processed file, okon is able to quickly search for keys.
