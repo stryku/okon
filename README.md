@@ -1,3 +1,5 @@
+![Travis CI](https://travis-ci.org/stryku/okon.svg?branch=master)
+
 # okon - overpowered key occurrence nailer
 Utilities for fast offline searching for SHA-1 keys in [Have I Been Pwned databases](https://haveibeenpwned.com/Passwords).
 
