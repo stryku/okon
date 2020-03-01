@@ -23,7 +23,7 @@ preparer::preparer(std::string_view input_file_path, std::string_view working_di
   : m_input_file{ input_file_path.data() }
   , m_intermediate_files{ working_directory_path, std::ios::in | std::ios::out | std::ios::trunc }
   , m_output_file_wrapper{ output_file_path }
-  , m_btree{ m_output_file_wrapper, 2048u }
+  , m_btree{ m_output_file_wrapper, 1024u }
   , m_sha1_buffers{ 256u }
 {
 }
