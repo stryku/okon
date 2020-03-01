@@ -1,8 +1,7 @@
 # okon - overpowered key occurrence nailer
 Utilities for fast offline searching for SHA-1 keys in [Have I Been Pwned databases](https://haveibeenpwned.com/Passwords).
 
-(Actually, okon can handle any file that is formatted like HIBP files, which is in every line:
-a SHA-1 hash, a colon and some number, e.g. `0000000000000000000000000000000000000000:68181`)
+(Actually, okon can handle any text file has an SHA-1 hash at the beginning of every line)
 
 # Table of Contents
 - [okon - overpowered key occurence nailer](#okon---overpowered-key-occurence-nailer)
