@@ -3,6 +3,8 @@
 
 ![Travis CI](https://travis-ci.org/stryku/okon.svg?branch=master)
 
+![okon](https://github.com/stryku/okon/blob/master/images/okon_logo.png)
+
 Utilities for fast offline searching for SHA-1 keys in [Have I Been Pwned databases](https://haveibeenpwned.com/Passwords).
 
 (Actually, okon can handle any text file has an SHA-1 hash at the beginning of every line)
@@ -17,6 +19,7 @@ Utilities for fast offline searching for SHA-1 keys in [Have I Been Pwned databa
   * [Library](#library)
   * [Command line interface](#command-line-interface)
 - [How it really works](#how-it-really-works)
+- [Building](#building)
 
 
 # Benchmarks
