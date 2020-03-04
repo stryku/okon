@@ -1,32 +1,13 @@
-add_executable(okon_benchmarks
-    exists_benchmark.cpp
-)
-
-if(NOT OKON_BENCHMARK_FILE)
-    message(FATAL_ERROR "Set OKON_BENCHMARK_PREPARED_DIR variable and try again")
+option(OKON_WITH_BTREE_BENCHMARK "Include B-tree benchmarking target. \
+                                  BEWARE: It needs root privilieges to 'sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"'. \
+                                  (requires python3)" OFF)
+if(OKON_WITH_BTREE_BENCHMARK)
+    include(okon_btree_benchmark.cmake)
 endif()
 
-if(NOT OKON_BENCHMARK_PREPARED_DIR)
-    message(FATAL_ERROR "Set OKON_BENCHMARK_PREPARED_DIR variable and try again")
+option(OKON_WITH_GREP_BENCHMARK "Include grep benchmark. \
+                                 BEWARE: It needs root privilieges to 'sudo sh -c \"sync; echo 3 > /proc/sys/vm/drop_caches\"'. \
+                                 (requires python3)" OFF)
+if(OKON_WITH_GREP_BENCHMARK)
+    include(okon_grep_benchmark.cmake)
 endif()
-
-target_include_directories(okon_benchmarks
-    PRIVATE
-        ${OKON_DIR}
-        ${benchmark_INCLUDE_DIRS}
-)
-
-target_link_libraries(okon_benchmarks
-    PRIVATE
-        okon
-        ${benchmark_LIBRARIES}
-        ${CMAKE_THREAD_LIBS_INIT}
-)
-
-target_compile_definitions(okon_benchmarks
-    PRIVATE
-        -DOKON_BENCHMARK_FILE="${OKON_BENCHMARK_FILE}"
-        -DOKON_BENCHMARK_BEST_CASE="${OKON_BENCHMARK_BEST_CASE}"
-        -DOKON_BENCHMARK_WORST_CASE="${OKON_BENCHMARK_WORST_CASE}"
-        -DOKON_BENCHMARK_BTREE_FILE="${OKON_BENCHMARK_BTREE_FILE}"
-)
