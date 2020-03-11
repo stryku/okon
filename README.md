@@ -23,19 +23,34 @@ Utilities for fast offline searching for SHA-1 keys in [Have I Been Pwned databa
 
 
 # Benchmarks
-Benchmarks are based on database version 5, form [HIBP page](https://haveibeenpwned.com/Passwords) (8e1c0f161a756e409ec51a6fceefdc63d34cea01).
+Searching in database version 5, form [HIBP page](https://haveibeenpwned.com/Passwords) (8e1c0f161a756e409ec51a6fceefdc63d34cea01).
 
-Benchmarks are done on my PC (Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz, 16GB RAM), on HDD (not SSD).
-`okon` and `C++ line by line` are done using [google/benchmark](https://github.com/google/benchmark) utils. You can find them in [benchmarks file](https://github.com/stryku/okon/blob/master/benchmark/exists_benchmark.cpp).
+Benchmarked searching for 100 random hashes from the original file and calculated average time.
+The same hashes are used in `grep` and `okon` benchmarks.
 
-Worst case. Find the hash that is on the last place in an original database:
+(Of course, I don't want to benchmark the `grep` tool. It's more of getting an idea of how much time grep needs in an average case.)
 
-|                  |   time [μs] |           % |
-|-----------------:|------------:|------------:|
-|             okon |          49 |         100 |
-|     grep '^hash' | 135'350'000 | 276'224'489 |
-|             grep | 135'480'000 | 276'489'795 |
-| C++ line by line | 135'720'201 | 276'980'002 |
+Benchmarks are done on my PC:
+* Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz, 16GB RAM.
+* SDD: `Model=Crucial_CT275MX300SSD1, FwRev=M0CR031`
+* HDD: `Model=WDC WD10EZEX-21WN4A0, FwRev=01.01A01`
+
+All the benchmarks code and more information you can find in [benchmark/ folder](https://github.com/stryku/okon/blob/master/benchmark).
+
+Results on SSD:
+
+|      | time [s] |
+|-----:|:--------:|
+| okon | 0.003405 |
+| grep |  26.014  |
+
+
+Results on HDD:
+
+|      | time [s] |
+|-----:|:--------:|
+| okon |  0.01378 |
+| grep |  70.159  |
 
 # How it works
 Before you search for a SHA-1 hash in the database, the database needs to be processed. With the processed file, okon is able to quickly search for keys.
@@ -79,12 +94,8 @@ CMake options:
 - `OKON_WITH_TESTS=ON/OFF` - Build tests.
 - `OKON_WITH_HEAVY_TEST=ON/OFF` - Add target for heavy test (requires python3). Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file. If `OKON_WITH_HEAVY_TEST` is set to ON:
   * `OKON_HEAVY_TEST_ORIGINAL_DB=path/to/file` - Path to a file containing original HIBP database, over which the heavy test should be run.
-- `OKON_WITH_BENCHMARKS=ON/OFF` - Build benchmarks (requires googlebenchmark). If `OKON_WITH_BENCHMARKS` is set to ON:
-  * `OKON_BENCHMARK_FILE=path/to/file` - Path to a file based on which benchmarks have to be run.
-  * `OKON_BENCHMARK_BEST_CASE=SHA-1` - Value of the first hash in file specified in `OKON_BENCHMARK_FILE`
-  * `OKON_BENCHMARK_WORST_CASE=SHA-1` - Value to the last hash in file specified in `OKON_BENCHMARK_FILE`
-  * `OKON_BENCHMARK_BTREE_FILE=path/to/file` - Path to a file prepared by okon, that should be used in benchmarks.
-- 
+- `OKON_WITH_BENCHMARKS=ON/OFF` - Build benchmarks (requires googlebenchmark). If `OKON_WITH_BENCHMARKS` is set to ON. Before building benchmarks, please see [benchmarks readme](https://github.com/stryku/okon/blob/master/benchmark/README.md)
+
 
 Building routine:
 ```sh
