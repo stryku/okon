@@ -11,7 +11,7 @@ okon implements B-tree to handle hashes. `okon_btree_benchmark` target is provid
 
 ## BEWARE
 `okon_btree_benchmark` and `okon_grep_benchmark` need root privileges to execute `'sudo sh -c "sync; echo 3 > /proc/sys/vm/drop_caches"'`, in order to clear OS cache.
-It's executed before every attempt to find a hash by okon.
+It's executed before every attempt to find a hash by `okon` and `grep`.
 
 ## Creating `okon_btree_benchmark` target
 To create `okon_btree_benchmark` target, set `OKON_WITH_BTREE_BENCHMARK` option to `ON`.

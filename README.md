@@ -10,9 +10,11 @@ Utilities for fast offline searching for SHA-1 keys in [Have I Been Pwned databa
 (Actually, okon can handle any text file has an SHA-1 hash at the beginning of every line)
 
 # Table of Contents
-- [okon - overpowered key occurence nailer](#okon---overpowered-key-occurence-nailer)
+- [okon - overpowered key occurrence nailer](#okon---overpowered-key-occurrence-nailer)
 - [Table of Contents](#table-of-contents)
 - [Benchmarks](#benchmarks)
+  * [`okon` results](#-okon--results)
+  * [`grep` results](#-grep--results)
 - [How it works](#how-it-works)
 - [Utilities](#utilities)
 - [Usage](#usage)
@@ -28,8 +30,6 @@ Searching in database version 5, form [HIBP page](https://haveibeenpwned.com/Pas
 Benchmarked searching for 100 random hashes from the original file and calculated average time.
 The same hashes are used in `grep` and `okon` benchmarks.
 
-(Of course, I don't want to benchmark the `grep` tool. It's more of getting an idea of how much time grep needs in an average case.)
-
 Benchmarks are done on my PC:
 * Intel(R) Core(TM) i7-6700 CPU @ 3.40GHz, 16GB RAM.
 * SDD: `Model=Crucial_CT275MX300SSD1, FwRev=M0CR031`
@@ -37,20 +37,22 @@ Benchmarks are done on my PC:
 
 All the benchmarks code and more information you can find in [benchmark/ folder](https://github.com/stryku/okon/blob/master/benchmark).
 
-Results on SSD:
+## `okon` results
 
-|      | time [s] |
-|-----:|:--------:|
-| okon | 0.003405 |
-| grep |  26.014  |
+|     | time [ms] |
+|----:|:---------:|
+| SSD |   3.405   |
+| HDD |  13.779   |
 
 
-Results on HDD:
+## `grep` results
+Of course, I don't want to benchmark the `grep` tool. I don't want to compare it to `okon`, either. These two solutions work differently, so direct comparison is pointless.
+It's more of getting an idea of how much time grep needs in an average case.
 
-|      | time [s] |
-|-----:|:--------:|
-| okon |  0.01378 |
-| grep |  70.159  |
+|     | time [s] |
+|----:|:--------:|
+| SSD |  26.014  |
+| HDD |  70.159  |
 
 # How it works
 Before you search for a SHA-1 hash in the database, the database needs to be processed. With the processed file, okon is able to quickly search for keys.
