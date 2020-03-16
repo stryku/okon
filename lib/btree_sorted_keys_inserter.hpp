@@ -39,6 +39,7 @@ template <typename DataStorage>
 void btree_sorted_keys_inserter<DataStorage>::insert_sorted(const sha1_t& sha1)
 {
   if (m_current_node.is_full()) {
+    this->write_node(m_current_node);
     m_current_node = split_node(m_current_node, sha1);
   } else {
     m_current_node.insert(sha1);
@@ -65,7 +66,6 @@ btree_node btree_sorted_keys_inserter<DataStorage>::split_node(btree_node& node,
   if (is_root) {
     return split_root_and_grow(node, sha1, level_from_leafs);
   } else {
-    this->write_node(node);
     auto parent_node = this->read_node(node.parent_pointer);
     if (parent_node.is_full()) {
       return split_node(parent_node, sha1, level_from_leafs + 1);
