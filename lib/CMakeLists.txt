@@ -5,6 +5,7 @@ add_library(okon STATIC
     btree_node.hpp
     btree_sorted_keys_inserter.hpp
     okon.cpp
+    original_file_reader.hpp
     preparer.cpp
     preparer.hpp
     sha1_utils.hpp

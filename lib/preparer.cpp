@@ -20,7 +20,8 @@ std::array<char, k_max_line_length> line_buffer{};
 namespace okon {
 preparer::preparer(std::string_view input_file_path, std::string_view working_directory_path,
                    std::string_view output_file_path)
-  : m_input_file{ input_file_path.data() }
+  : m_input_file_wrapper{ input_file_path }
+  , m_input_reader{ m_output_file_wrapper, 1024 * 1024 }
   , m_intermediate_files{ working_directory_path, std::ios::in | std::ios::out | std::ios::trunc }
   , m_output_file_wrapper{ output_file_path }
   , m_btree{ m_output_file_wrapper, 1024u }
@@ -30,7 +31,7 @@ preparer::preparer(std::string_view input_file_path, std::string_view working_di
 
 preparer::result preparer::prepare()
 {
-  if (!m_input_file.is_open()) {
+  if (!m_input_reader.is_open()) {
     return result::could_not_open_input_file;
   }
 
@@ -42,7 +43,7 @@ preparer::result preparer::prepare()
     return result::could_not_open_output;
   }
 
-  while (const auto sha1 = get_next_sha1()) {
+  while (const auto sha1 = m_input_reader.next_sha1()) {
     add_sha1_to_file(*sha1);
   }
 
@@ -54,15 +55,6 @@ preparer::result preparer::prepare()
   process_sorted_files();
 
   return result::success;
-}
-
-std::optional<std::string_view> preparer::get_next_sha1()
-{
-  if (!m_input_file.getline(&line_buffer[0], k_max_line_length)) {
-    return std::nullopt;
-  }
-
-  return std::string_view{ &line_buffer[0], k_string_sha1_length };
 }
 
 void preparer::add_sha1_to_file(std::string_view sha1)
