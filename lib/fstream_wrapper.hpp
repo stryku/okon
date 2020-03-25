@@ -23,7 +23,8 @@ public:
 
   size_type_t read(void* ptr, pos_type_t size)
   {
-    return m_file.readsome(reinterpret_cast<char*>(ptr), size);
+    m_file.read(reinterpret_cast<char*>(ptr), size);
+    return m_file.gcount();
   }
 
   void seek_in(pos_type_t pos)

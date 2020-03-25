@@ -21,7 +21,7 @@ namespace okon {
 preparer::preparer(std::string_view input_file_path, std::string_view working_directory_path,
                    std::string_view output_file_path)
   : m_input_file_wrapper{ input_file_path }
-  , m_input_reader{ m_output_file_wrapper, 1024 * 1024 }
+  , m_input_reader{ m_input_file_wrapper, 1024u * 1024u }
   , m_intermediate_files{ working_directory_path, std::ios::in | std::ios::out | std::ios::trunc }
   , m_output_file_wrapper{ output_file_path }
   , m_btree{ m_output_file_wrapper, 1024u }
