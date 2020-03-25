@@ -84,6 +84,7 @@ std::optional<std::string_view> original_file_reader<DataStorage>::read_split_sh
               second_part_size);
 
   advance_view(second_part_size);
+  advance_till_next_sha1();
 
   return std::string_view{ m_backup_buffer.data(), m_backup_buffer.size() };
 }
@@ -120,7 +121,7 @@ void original_file_reader<DataStorage>::advance_till_next_sha1()
     return;
   }
 
-  advance_view(new_line_pos);
+  advance_view(new_line_pos + 1u);
 }
 
 }
