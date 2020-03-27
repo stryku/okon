@@ -3,6 +3,8 @@
 #include "btree_base.hpp"
 #include "sha1_utils.hpp"
 
+#include <vector>
+
 namespace okon {
 
 template <typename DataStorage>
@@ -16,39 +18,43 @@ public:
 
 private:
   btree_node::pointer_t new_node_pointer();
-  btree_node split_node(btree_node& node, const sha1_t& sha1, unsigned level_from_leafs = 0u);
-  btree_node split_root_and_grow(btree_node& node, const sha1_t& sha1, unsigned level_from_leafs);
-  btree_node create_children_till_leaf(btree_node& parent, unsigned level_from_leafs);
+  void split_node(const sha1_t& sha1, unsigned level_from_leafs = 0u);
+  void split_root_and_grow(const sha1_t& sha1, unsigned level_from_leafs);
+  void create_children_till_leaf(unsigned level_from_leafs);
+  btree_node& current_node();
 
 private:
   btree_node::pointer_t m_next_node_ptr{ 0u };
-  btree_node m_current_node;
+  std::vector<btree_node> m_current_path;
 };
 
 template <typename DataStorage>
 btree_sorted_keys_inserter<DataStorage>::btree_sorted_keys_inserter(DataStorage& storage,
                                                                     btree_node::order_t order)
   : btree_base<DataStorage>{ storage, order }
-  , m_current_node{ order, btree_node::k_unused_pointer }
 {
-  m_current_node.this_pointer = new_node_pointer();
-  m_current_node.is_leaf = true;
+  auto& root = m_current_path.emplace_back(order, btree_node::k_unused_pointer);
+
+  root.this_pointer = new_node_pointer();
+  root.is_leaf = true;
 }
 
 template <typename DataStorage>
 void btree_sorted_keys_inserter<DataStorage>::insert_sorted(const sha1_t& sha1)
 {
-  if (m_current_node.is_full()) {
-    m_current_node = split_node(m_current_node, sha1);
+  if (current_node().is_full()) {
+    split_node(sha1);
   } else {
-    m_current_node.insert(sha1);
+    current_node().insert(sha1);
   }
 }
 
 template <typename DataStorage>
 void btree_sorted_keys_inserter<DataStorage>::finalize_inserting()
 {
-  this->write_node(m_current_node);
+  for (const auto& node : m_current_path) {
+    this->write_node(node);
+  }
 }
 
 template <typename DataStorage>
@@ -58,69 +64,78 @@ btree_node::pointer_t btree_sorted_keys_inserter<DataStorage>::new_node_pointer(
 }
 
 template <typename DataStorage>
-btree_node btree_sorted_keys_inserter<DataStorage>::split_node(btree_node& node, const sha1_t& sha1,
-                                                               unsigned level_from_leafs)
+void btree_sorted_keys_inserter<DataStorage>::split_node(const sha1_t& sha1,
+                                                         unsigned level_from_leafs)
 {
-  const auto is_root = (node.this_pointer == this->root_ptr());
+  const auto is_root = (m_current_path.size() == 1u);
   if (is_root) {
-    return split_root_and_grow(node, sha1, level_from_leafs);
+    return split_root_and_grow(sha1, level_from_leafs);
   } else {
-    this->write_node(node);
-    auto parent_node = this->read_node(node.parent_pointer);
+
+    this->write_node(current_node());
+    m_current_path.pop_back();
+
+    auto& parent_node = current_node();
     if (parent_node.is_full()) {
-      return split_node(parent_node, sha1, level_from_leafs + 1);
+      return split_node(sha1, level_from_leafs + 1);
     } else {
       parent_node.insert(sha1);
-      this->write_node(parent_node);
-      return create_children_till_leaf(parent_node, level_from_leafs);
+      return create_children_till_leaf(level_from_leafs);
     }
   }
 }
 
 template <typename DataStorage>
-btree_node btree_sorted_keys_inserter<DataStorage>::split_root_and_grow(btree_node& node,
-                                                                        const sha1_t& sha1,
-                                                                        unsigned level_from_leafs)
+void btree_sorted_keys_inserter<DataStorage>::split_root_and_grow(const sha1_t& sha1,
+                                                                  unsigned level_from_leafs)
 {
   const auto new_root_ptr = new_node_pointer();
 
-  btree_node new_root{ this->order(), node.parent_pointer };
+  auto& old_root = current_node();
+  const auto old_root_ptr = old_root.this_pointer;
+
+  old_root.parent_pointer = new_root_ptr;
+  this->write_node(old_root);
+  m_current_path.pop_back();
+
+  auto& new_root = m_current_path.emplace_back(this->order(), btree_node::k_unused_pointer);
   new_root.insert(sha1);
-  new_root.pointers[0] = node.this_pointer;
+  new_root.pointers[0] = old_root_ptr;
   new_root.this_pointer = new_root_ptr;
   new_root.is_leaf = false;
 
-  // create_children_till_leaf() will write the new_root to file.
-  const auto new_child_node = create_children_till_leaf(new_root, level_from_leafs);
-
-  node.parent_pointer = new_root_ptr;
-  this->write_node(node);
+  create_children_till_leaf(level_from_leafs);
 
   this->set_root_ptr(new_root_ptr);
-
-  return new_child_node;
 }
 
 template <typename DataStorage>
-btree_node btree_sorted_keys_inserter<DataStorage>::create_children_till_leaf(
-  btree_node& parent, unsigned level_from_leafs)
+void btree_sorted_keys_inserter<DataStorage>::create_children_till_leaf(unsigned level_from_leafs)
 {
   const auto is_on_leaf_level = (level_from_leafs == 0u);
 
-  btree_node node{ this->order(), parent.this_pointer };
+  const auto parent_ptr = current_node().this_pointer;
+  const auto parent_place_in_current_path = m_current_path.size() - 1u;
+
+  auto& node = m_current_path.emplace_back(this->order(), parent_ptr);
   node.this_pointer = new_node_pointer();
   node.keys_count = 0u;
   node.is_leaf = is_on_leaf_level;
-  this->write_node(node);
 
+  auto& parent = m_current_path[parent_place_in_current_path];
   parent.pointers[parent.keys_count] = node.this_pointer;
-  this->write_node(parent);
 
   if (is_on_leaf_level) {
-    return node;
+    return;
   }
 
-  return create_children_till_leaf(node, level_from_leafs - 1u);
+  return create_children_till_leaf(level_from_leafs - 1u);
+}
+
+template <typename DataStorage>
+btree_node& btree_sorted_keys_inserter<DataStorage>::current_node()
+{
+  return m_current_path.back();
 }
 
 }
