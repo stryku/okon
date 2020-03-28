@@ -1,11 +1,13 @@
 #pragma once
 
+#include "buffers_queue.hpp"
 #include "sha1_utils.hpp"
 
 #include <array>
 #include <fstream>
 #include <optional>
 #include <string_view>
+#include <thread>
 #include <vector>
 
 namespace okon {
@@ -16,8 +18,9 @@ class original_file_reader
 public:
   explicit original_file_reader(DataStorage& storage, unsigned buffer_size)
     : m_storage{ storage }
-    , m_buffer(buffer_size)
+    , m_buffers{ buffer_size, 4u }
   {
+    start_reader();
   }
 
   std::optional<std::string_view> next_sha1();
@@ -31,9 +34,34 @@ private:
   void advance_view(unsigned n);
   void advance_till_next_sha1();
 
+  void start_reader()
+  {
+    const auto fun = [this] {
+      while (true) {
+        const auto buffer_index = m_buffers.take_for_data_storing();
+        auto& buffer = m_buffers.access_buffer(buffer_index);
+
+        const auto read_size = m_storage.read(&buffer[0], buffer.size());
+        if (read_size == 0) {
+          m_buffers.notify_no_more_data();
+          return;
+        }
+
+        if (read_size < buffer.size()) {
+          buffer.resize(read_size);
+        }
+
+        m_buffers.data_storing_ready();
+      }
+    };
+
+    std::thread{ fun }.detach();
+  }
+
 private:
   DataStorage& m_storage;
-  std::vector<char> m_buffer;
+  buffers_queue m_buffers;
+  std::vector<uint8_t>* m_buffer{ nullptr };
   std::string_view m_buffer_view;
   std::array<char, k_text_sha1_length> m_backup_buffer;
   bool m_need_to_read_and_advance_till_next_sha1{ false };
@@ -92,18 +120,21 @@ std::optional<std::string_view> original_file_reader<DataStorage>::read_split_sh
 template <typename DataStorage>
 void original_file_reader<DataStorage>::read_chunk()
 {
-  const auto read_size = m_storage.read(&m_buffer[0], m_buffer.size());
-  if (read_size == 0) {
+  const auto buffer_index = m_buffers.take_for_processing();
+  if (!buffer_index) {
     m_buffer_view = std::string_view{};
     m_has_more_input = false;
     return;
   }
 
-  if (read_size < m_buffer.size()) {
-    m_buffer.resize(read_size);
+  if (m_buffer != nullptr) {
+    m_buffers.processing_ready();
   }
 
-  m_buffer_view = std::string_view{ m_buffer.data(), m_buffer.size() };
+  m_buffer = &m_buffers.access_buffer(*buffer_index);
+
+  m_buffer_view =
+    std::string_view{ reinterpret_cast<const char*>(m_buffer->data()), m_buffer->size() };
 }
 
 template <typename DataStorage>
@@ -123,5 +154,4 @@ void original_file_reader<DataStorage>::advance_till_next_sha1()
 
   advance_view(new_line_pos + 1u);
 }
-
 }
