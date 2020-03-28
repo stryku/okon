@@ -7,6 +7,7 @@ namespace okon {
 class fstream_wrapper
 {
 public:
+  using size_type_t = std::streamsize;
   using pos_type_t = std::fstream::pos_type;
 
   explicit fstream_wrapper(std::string_view path,
@@ -20,9 +21,10 @@ public:
     m_file.write(reinterpret_cast<const char*>(ptr), size);
   }
 
-  void read(void* ptr, pos_type_t size)
+  size_type_t read(void* ptr, pos_type_t size)
   {
     m_file.read(reinterpret_cast<char*>(ptr), size);
+    return m_file.gcount();
   }
 
   void seek_in(pos_type_t pos)

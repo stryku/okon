@@ -2,6 +2,7 @@
 
 #include "btree_sorted_keys_inserter.hpp"
 #include "fstream_wrapper.hpp"
+#include "original_file_reader.hpp"
 #include "sha1_utils.hpp"
 #include "splitted_files.hpp"
 
@@ -29,7 +30,6 @@ public:
   result prepare();
 
 private:
-  std::optional<std::string_view> get_next_sha1();
   void add_sha1_to_file(std::string_view sha1);
 
   void sort_files();
@@ -38,7 +38,8 @@ private:
   void write_sha1_buffer(unsigned buffer_index);
 
 private:
-  std::ifstream m_input_file;
+  fstream_wrapper m_input_file_wrapper;
+  original_file_reader<fstream_wrapper> m_input_reader;
   splitted_files m_intermediate_files;
   fstream_wrapper m_output_file_wrapper;
   btree_sorted_keys_inserter<fstream_wrapper> m_btree;

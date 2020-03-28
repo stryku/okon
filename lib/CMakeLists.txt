@@ -4,7 +4,11 @@ add_library(okon STATIC
     btree_node.cpp
     btree_node.hpp
     btree_sorted_keys_inserter.hpp
+    buffers_queue.cpp
+    buffers_queue.hpp
+    fstream_wrapper.hpp
     okon.cpp
+    original_file_reader.hpp
     preparer.cpp
     preparer.hpp
     sha1_utils.hpp
