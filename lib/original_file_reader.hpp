@@ -16,9 +16,10 @@ template <typename DataStorage>
 class original_file_reader
 {
 public:
-  explicit original_file_reader(DataStorage& storage, unsigned buffer_size)
+  explicit original_file_reader(DataStorage& storage, unsigned buffer_size,
+                                unsigned number_of_buffers)
     : m_storage{ storage }
-    , m_buffers{ buffer_size, 4u }
+    , m_buffers{ buffer_size, number_of_buffers }
   {
     start_reader();
   }
