@@ -10,7 +10,8 @@
 namespace {
 constexpr auto k_sha1_buffer_max_size{ 1024u * 100u };
 constexpr auto k_sorting_threads{ 4u };
-constexpr auto k_files_to_sort_per_thread{ 256u / k_sorting_threads };
+constexpr auto k_intermediate_files_count{ 256u };
+constexpr auto k_files_to_sort_per_thread{ k_intermediate_files_count / k_sorting_threads };
 }
 
 namespace okon {
@@ -76,7 +77,7 @@ void preparer::sort_files()
   auto sorter = [pred, this](unsigned start_index) {
     std::vector<sha1_t> sha1s;
 
-    for (auto i = start_index; i < start_index + k_files_to_sort_per_thread; ++i) {
+    for (auto i = start_index; i < k_intermediate_files_count; i += k_sorting_threads) {
       auto& file = *(std::next(m_intermediate_files.begin(), i));
       const std::streamsize file_size = file.tellp();
       const auto sha1_count = file_size / sizeof(sha1_t);
@@ -95,7 +96,7 @@ void preparer::sort_files()
   threads.reserve(k_sorting_threads);
 
   for (auto i = 0u; i < k_sorting_threads; ++i) {
-    threads.emplace_back(sorter, i * k_files_to_sort_per_thread);
+    threads.emplace_back(sorter, i);
   }
 
   for (auto& t : threads) {
