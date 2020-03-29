@@ -6,13 +6,15 @@
 #include "sha1_utils.hpp"
 #include "splitted_files.hpp"
 
-#include <string_view>
-
 #include <array>
+#include <condition_variable>
 #include <fstream>
 #include <optional>
+#include <string_view>
 
 namespace okon {
+constexpr auto k_intermediate_files_count{ 256u };
+
 class preparer
 {
 public:
@@ -33,7 +35,7 @@ private:
   void add_sha1_to_file(std::string_view sha1);
 
   void sort_files();
-  void process_sorted_files();
+  void start_writing_sorted_files_thread();
 
   void write_sha1_buffer(unsigned buffer_index);
 
@@ -44,5 +46,10 @@ private:
   fstream_wrapper m_output_file_wrapper;
   btree_sorted_keys_inserter<fstream_wrapper> m_btree;
   std::vector<std::vector<sha1_t>> m_sha1_buffers;
+
+  std::mutex m_processing_sorted_files_mtx;
+  std::array<std::condition_variable, k_intermediate_files_count> m_sorted_files_cvs;
+  std::array<bool, k_intermediate_files_count> m_sorted_files_ready_state;
+  std::thread m_writing_sorted_files_thread;
 };
 }

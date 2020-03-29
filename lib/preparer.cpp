@@ -9,8 +9,7 @@
 
 namespace {
 constexpr auto k_sha1_buffer_max_size{ 1024u * 100u };
-constexpr auto k_sorting_threads{ 4u };
-constexpr auto k_files_to_sort_per_thread{ 256u / k_sorting_threads };
+constexpr auto k_sorting_threads{ 3u };
 }
 
 namespace okon {
@@ -22,7 +21,10 @@ preparer::preparer(std::string_view input_file_path, std::string_view working_di
   , m_output_file_wrapper{ output_file_path }
   , m_btree{ m_output_file_wrapper, /*order=*/1024u }
   , m_sha1_buffers{ 256u }
+  , m_sorted_files_ready_state{}
 {
+  m_sorted_files_ready_state.fill(false);
+
   for (auto& buffer : m_sha1_buffers) {
     buffer.reserve(k_sha1_buffer_max_size);
   }
@@ -50,8 +52,9 @@ preparer::result preparer::prepare()
     write_sha1_buffer(i);
   }
 
+  start_writing_sorted_files_thread();
   sort_files();
-  process_sorted_files();
+  m_writing_sorted_files_thread.join();
 
   return result::success;
 }
@@ -69,14 +72,14 @@ void preparer::add_sha1_to_file(std::string_view sha1)
 
 void preparer::sort_files()
 {
-  const auto pred = [](const sha1_t& lhs, const sha1_t& rhs) {
+  const auto sort_pred = [](const sha1_t& lhs, const sha1_t& rhs) {
     return std::memcmp(lhs.data(), rhs.data(), sizeof(sha1_t)) < 0;
   };
 
-  auto sorter = [pred, this](unsigned start_index) {
+  auto sorter = [sort_pred, this](unsigned start_index) {
     std::vector<sha1_t> sha1s;
 
-    for (auto i = start_index; i < start_index + k_files_to_sort_per_thread; ++i) {
+    for (auto i = start_index; i < k_intermediate_files_count; i += k_sorting_threads) {
       auto& file = *(std::next(m_intermediate_files.begin(), i));
       const std::streamsize file_size = file.tellp();
       const auto sha1_count = file_size / sizeof(sha1_t);
@@ -84,10 +87,14 @@ void preparer::sort_files()
       file.seekg(0);
       file.read(reinterpret_cast<char*>(&sha1s[0]), file_size);
 
-      std::sort(std::begin(sha1s), std::end(sha1s), pred);
+      std::sort(std::begin(sha1s), std::end(sha1s), sort_pred);
 
       file.seekp(0);
       file.write(reinterpret_cast<char*>(&sha1s[0]), file_size);
+
+      std::lock_guard lock{ m_processing_sorted_files_mtx };
+      m_sorted_files_ready_state[i] = true;
+      m_sorted_files_cvs[i].notify_one();
     }
   };
 
@@ -95,7 +102,7 @@ void preparer::sort_files()
   threads.reserve(k_sorting_threads);
 
   for (auto i = 0u; i < k_sorting_threads; ++i) {
-    threads.emplace_back(sorter, i * k_files_to_sort_per_thread);
+    threads.emplace_back(sorter, i);
   }
 
   for (auto& t : threads) {
@@ -103,24 +110,33 @@ void preparer::sort_files()
   }
 }
 
-void preparer::process_sorted_files()
+void preparer::start_writing_sorted_files_thread()
 {
-  std::vector<sha1_t> sha1s;
+  m_writing_sorted_files_thread = std::thread{ [this] {
+    std::vector<sha1_t> sha1s;
 
-  for (auto& file : m_intermediate_files) {
-    file.seekp(0, std::ios::end);
-    const std::streamsize file_size = file.tellp();
-    const auto sha1_count = file_size / sizeof(sha1_t);
-    sha1s.resize(sha1_count);
-    file.seekg(0);
-    file.read(reinterpret_cast<char*>(&sha1s[0]), file_size);
+    for (auto i = 0u; i < k_intermediate_files_count; ++i) {
+      {
+        std::unique_lock lock{ m_processing_sorted_files_mtx };
+        m_sorted_files_cvs[i].wait(lock, [i, this] { return m_sorted_files_ready_state[i]; });
+      }
 
-    for (const auto& sha1 : sha1s) {
-      m_btree.insert_sorted(sha1);
+      auto& file = m_intermediate_files[i];
+
+      file.seekp(0, std::ios::end);
+      const std::streamsize file_size = file.tellp();
+      const auto sha1_count = file_size / sizeof(sha1_t);
+      sha1s.resize(sha1_count);
+      file.seekg(0);
+      file.read(reinterpret_cast<char*>(&sha1s[0]), file_size);
+
+      for (const auto& sha1 : sha1s) {
+        m_btree.insert_sorted(sha1);
+      }
     }
-  }
 
-  m_btree.finalize_inserting();
+    m_btree.finalize_inserting();
+  } };
 }
 
 void preparer::write_sha1_buffer(unsigned buffer_index)
