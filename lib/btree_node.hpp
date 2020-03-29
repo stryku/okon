@@ -21,6 +21,7 @@ public:
   static uint64_t binary_keys_size(order_t order);
 
   uint32_t insert(const sha1_t& sha1);
+  void push_back(const sha1_t& sha1);
 
   order_t order() const;
   uint32_t place_for(const sha1_t& sha1) const;

@@ -45,7 +45,7 @@ void btree_sorted_keys_inserter<DataStorage>::insert_sorted(const sha1_t& sha1)
   if (current_node().is_full()) {
     split_node(sha1);
   } else {
-    current_node().insert(sha1);
+    current_node().push_back(sha1);
   }
 }
 

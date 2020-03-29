@@ -40,6 +40,12 @@ uint32_t btree_node::insert(const sha1_t& sha1)
   return place;
 }
 
+void btree_node::push_back(const sha1_t& sha1)
+{
+  keys[keys_count] = sha1;
+  ++keys_count;
+}
+
 uint32_t btree_node::order() const
 {
   return keys.size();
