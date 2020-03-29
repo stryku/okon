@@ -24,6 +24,7 @@ target_link_libraries(okon
 target_include_directories(okon
     PRIVATE
         ${OKON_INCLUDE_DIR}
+        ${OKON_3RDPARTY_DIR}
 )
 
 set_target_properties(okon
