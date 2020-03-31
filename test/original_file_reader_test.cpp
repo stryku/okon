@@ -19,22 +19,26 @@ auto to_storage(std::string_view content)
   return storage;
 }
 
+auto make_original_file_reader(memory_storage& storage, unsigned buffer_size)
+{
+  return original_file_reader<memory_storage>{ storage, buffer_size + k_text_sha1_length_for_simd,
+                                               buffer_size, k_number_of_read_buffers };
+}
+
 TEST(OriginalFileReader, NextSha1_Empty_ReturnsNullopt)
 {
   memory_storage storage{};
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/1024u,
-                                               k_number_of_read_buffers };
-  const auto result = reader.next_sha1();
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/1024u);
 
+  const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(std::nullopt));
 }
 
 TEST(OriginalFileReader, NextSha1_ContainsExactlyOneHash_ReturnsHashAndThenNullopt)
 {
   auto storage = to_storage(k_zero_hash);
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/1024u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/1024u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
 
@@ -45,9 +49,8 @@ TEST(OriginalFileReader, NextSha1_ContainsExactlyOneHash_ReturnsHashAndThenNullo
 TEST(OriginalFileReader, NextSha1_ContainsOneHashPerLine_ReturnsHashAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash } + '\n' + std::string{ k_one_hash });
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/1024u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/1024u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
 
@@ -61,9 +64,8 @@ TEST(OriginalFileReader, NextSha1_ContainsOneHashPerLine_ReturnsHashAndThenNullo
 TEST(OriginalFileReader, NextSha1_ContainsOneHashWithCounter_ReturnsHashAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash } + ":1234");
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/1024u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/1024u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
 
@@ -74,9 +76,8 @@ TEST(OriginalFileReader, NextSha1_ContainsOneHashWithCounter_ReturnsHashAndThenN
 TEST(OriginalFileReader, NextSha1_ContainsOneHashBufferOfHashSize_ReturnsHashAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash });
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/40u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/40u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
 
@@ -87,9 +88,8 @@ TEST(OriginalFileReader, NextSha1_ContainsOneHashBufferOfHashSize_ReturnsHashAnd
 TEST(OriginalFileReader, NextSha1_ContainsHashAfterHashBufferOfHashSize_ReturnsHashesAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash } + '\n' + std::string{ k_one_hash });
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/40u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/40u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
   const auto next_result = reader.next_sha1();
@@ -102,9 +102,8 @@ TEST(OriginalFileReader, NextSha1_ContainsHashAfterHashBufferOfHashSize_ReturnsH
 TEST(OriginalFileReader, NextSha1_BufferEndsAtTheBeginingOfNextLine_ReturnsHashesAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash } + '\n' + std::string{ k_one_hash });
+  auto reader = make_original_file_reader(storage, 41u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/41u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
   const auto next_result = reader.next_sha1();
@@ -117,9 +116,8 @@ TEST(OriginalFileReader, NextSha1_BufferEndsAtTheBeginingOfNextLine_ReturnsHashe
 TEST(OriginalFileReader, NextSha1_BufferEndsInTheMiddleOfCounter_ReturnsHashesAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash } + ":1234\n" + std::string{ k_one_hash });
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/42u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/42u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
   const auto next_result = reader.next_sha1();
@@ -132,9 +130,8 @@ TEST(OriginalFileReader, NextSha1_BufferEndsInTheMiddleOfCounter_ReturnsHashesAn
 TEST(OriginalFileReader, NextSha1_BufferEndsInTheMiddleOfHashCounter_ReturnsHashesAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash } + ":1234\n" + std::string{ k_one_hash });
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/50u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/50u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
   const auto next_result = reader.next_sha1();
@@ -147,9 +144,8 @@ TEST(OriginalFileReader, NextSha1_BufferEndsInTheMiddleOfHashCounter_ReturnsHash
 TEST(OriginalFileReader, NextSha1_BufferEndsExactlyAtTheEndOfInput_ReturnsHashesAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash } + ":1234\n" + std::string{ k_one_hash });
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/86u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/86u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
 
@@ -163,9 +159,8 @@ TEST(OriginalFileReader, NextSha1_BufferEndsExactlyAtTheEndOfInput_ReturnsHashes
 TEST(OriginalFileReader, NextSha1_BufferBiggerThanInput_ReturnsHashesAndThenNullopt)
 {
   auto storage = to_storage(std::string{ k_zero_hash } + ":1234\n" + std::string{ k_one_hash });
+  auto reader = make_original_file_reader(storage, /*buffer_size=*/128u);
 
-  original_file_reader<memory_storage> reader{ storage, /*buffer_size=*/128u,
-                                               k_number_of_read_buffers };
   const auto result = reader.next_sha1();
   EXPECT_THAT(result, Eq(k_zero_hash));
 

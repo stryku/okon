@@ -11,6 +11,7 @@
 namespace okon {
 using sha1_t = std::array<uint8_t, 20u>;
 constexpr auto k_text_sha1_length{ 40u };
+constexpr auto k_text_sha1_length_for_simd{ 64u };
 
 inline constexpr uint8_t char_to_index(char c)
 {

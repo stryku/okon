@@ -17,11 +17,12 @@ class original_file_reader
 {
 public:
   explicit original_file_reader(DataStorage& storage, unsigned buffer_size,
-                                unsigned number_of_buffers)
+                                unsigned size_to_read_from_storage, unsigned number_of_buffers)
     : m_storage{ storage }
     , m_buffers{ buffer_size, number_of_buffers }
+    , m_size_to_read_from_storage{ size_to_read_from_storage }
   {
-    start_reader();
+    start_reader_thread();
   }
 
   std::optional<std::string_view> next_sha1();
@@ -35,36 +36,15 @@ private:
   void advance_view(unsigned n);
   void advance_till_next_sha1();
 
-  void start_reader()
-  {
-    const auto fun = [this] {
-      while (true) {
-        const auto buffer_index = m_buffers.take_for_data_storing();
-        auto& buffer = m_buffers.access_buffer(buffer_index);
-
-        const auto read_size = m_storage.read(&buffer[0], buffer.size());
-        if (read_size == 0) {
-          m_buffers.notify_no_more_data();
-          return;
-        }
-
-        if (read_size < buffer.size()) {
-          buffer.resize(read_size);
-        }
-
-        m_buffers.data_storing_ready();
-      }
-    };
-
-    std::thread{ fun }.detach();
-  }
+  void start_reader_thread();
 
 private:
   DataStorage& m_storage;
   buffers_queue m_buffers;
+  unsigned m_size_to_read_from_storage;
   std::vector<uint8_t>* m_buffer{ nullptr };
   std::string_view m_buffer_view;
-  std::array<char, k_text_sha1_length> m_backup_buffer;
+  std::array<char, k_text_sha1_length_for_simd> m_backup_buffer{};
   bool m_need_to_read_and_advance_till_next_sha1{ false };
   bool m_has_more_input{ true };
 };
@@ -115,7 +95,7 @@ std::optional<std::string_view> original_file_reader<DataStorage>::read_split_sh
   advance_view(second_part_size);
   advance_till_next_sha1();
 
-  return std::string_view{ m_backup_buffer.data(), m_backup_buffer.size() };
+  return std::string_view{ m_backup_buffer.data(), k_text_sha1_length };
 }
 
 template <typename DataStorage>
@@ -134,8 +114,8 @@ void original_file_reader<DataStorage>::read_chunk()
 
   m_buffer = &m_buffers.access_buffer(*buffer_index);
 
-  m_buffer_view =
-    std::string_view{ reinterpret_cast<const char*>(m_buffer->data()), m_buffer->size() };
+  m_buffer_view = std::string_view{ reinterpret_cast<const char*>(m_buffer->data()),
+                                    m_size_to_read_from_storage };
 }
 
 template <typename DataStorage>
@@ -154,5 +134,29 @@ void original_file_reader<DataStorage>::advance_till_next_sha1()
   }
 
   advance_view(new_line_pos + 1u);
+}
+template <typename DataStorage>
+void original_file_reader<DataStorage>::start_reader_thread()
+{
+  const auto fun = [this] {
+    while (true) {
+      const auto buffer_index = m_buffers.take_for_data_storing();
+      auto& buffer = m_buffers.access_buffer(buffer_index);
+
+      const auto read_size = m_storage.read(&buffer[0], m_size_to_read_from_storage);
+      if (read_size == 0) {
+        m_buffers.notify_no_more_data();
+        return;
+      }
+
+      if (read_size < buffer.size()) {
+        buffer.resize(read_size);
+      }
+
+      m_buffers.data_storing_ready();
+    }
+  };
+
+  std::thread{ fun }.detach();
 }
 }
