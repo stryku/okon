@@ -9,6 +9,7 @@ find_package(Threads)
 
 set(OKON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(OKON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(OKON_3RDPARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty)
 
 add_subdirectory(lib)
 

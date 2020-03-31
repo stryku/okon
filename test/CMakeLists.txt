@@ -14,6 +14,7 @@ function(okon_add_test name file)
     target_include_directories(${name}
         PRIVATE
             ${OKON_DIR}
+            ${OKON_3RDPARTY_DIR}
     )
 
     add_test(${name} ${name})
@@ -22,6 +23,7 @@ endfunction()
 okon_add_test(sorted_insert_test btree_sorted_keys_inserter_test.cpp)
 okon_add_test(btree_test btree_test.cpp)
 okon_add_test(original_file_reader_test original_file_reader_test.cpp)
+okon_add_test(text_sha1_to_binary_test text_sha1_to_binary_test.cpp)
 
 option(OKON_WITH_HEAVY_TEST "Add heavy test target (requires python3)" OFF)
 if(OKON_WITH_HEAVY_TEST)

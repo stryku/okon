@@ -1,13 +1,17 @@
-
 #pragma once
 
 #include <array>
+#include <cassert>
 #include <cstdint>
 #include <cstring>
+
+#define VCL_NAMESPACE vcl
+#include <vcl/vectorclass.h>
 
 namespace okon {
 using sha1_t = std::array<uint8_t, 20u>;
 constexpr auto k_text_sha1_length{ 40u };
+constexpr auto k_text_sha1_length_for_simd{ 64u };
 
 inline constexpr uint8_t char_to_index(char c)
 {
@@ -45,6 +49,42 @@ inline sha1_t string_sha1_to_binary(std::string_view sha1_text)
   return sha1;
 }
 
+// The function assumes that ((const char*)text)[63] is accessible.
+inline sha1_t simd_string_sha1_to_binary(const void* text)
+{
+  const auto is_little_endian = [] {
+    int value{ 1u };
+    return *(char*)&value == 1;
+  }();
+  assert(is_little_endian);
+
+  vcl::Vec64uc v8;
+  v8.load(text);
+
+  v8 -= vcl::Vec64uc{ '0' };
+
+  const auto gt_nine_mask = v8 > vcl::Vec64uc{ 9u };
+  v8 = if_sub(gt_nine_mask, v8, vcl::Vec64uc{ 7u });
+
+  const auto shifted_8_to_left = v8 << 4u;
+  const auto shifted_16 = vcl::Vec32us{ shifted_8_to_left } << 8u;
+
+  const auto v16 = vcl::Vec32us{ v8 };
+  const auto result = (v16 | shifted_16 & vcl::Vec32us{ 0xff00u }) >> 8u;
+
+  std::aligned_storage_t<sizeof(uint8_t) * 64u, 32u> result_storage;
+  auto result_storage_ptr = reinterpret_cast<uint8_t*>(&result_storage);
+  result.store_a(result_storage_ptr);
+
+  sha1_t result_arr{};
+  auto result_storage_16_ptr = reinterpret_cast<uint16_t*>(result_storage_ptr);
+  for (auto i = 0; i < result_arr.size(); ++i) {
+    result_arr[i] = result_storage_16_ptr[i];
+  }
+
+  return result_arr;
+}
+
 inline std::string binary_sha1_to_string(const sha1_t& sha1)
 {
   std::string result;
@@ -54,8 +94,8 @@ inline std::string binary_sha1_to_string(const sha1_t& sha1)
   };
 
   for (uint8_t byte : sha1) {
-    const uint8_t first_char = (byte & 0xf0) >> 4;
-    const uint8_t second_char = byte & 0x0f;
+    const uint8_t first_char = (byte & 0xf0u) >> 4u;
+    const uint8_t second_char = byte & 0x0fu;
 
     result += to_char(first_char);
     result += to_char(second_char);

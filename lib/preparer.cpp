@@ -9,6 +9,7 @@
 
 namespace {
 constexpr auto k_sha1_buffer_max_size{ 1024u * 100u };
+constexpr auto k_file_chunk_size_to_read{ 1024u * 1024u };
 constexpr auto k_sorting_threads{ 3u };
 }
 
@@ -16,7 +17,10 @@ namespace okon {
 preparer::preparer(std::string_view input_file_path, std::string_view working_directory_path,
                    std::string_view output_file_path)
   : m_input_file_wrapper{ input_file_path }
-  , m_input_reader{ m_input_file_wrapper, /*buffer_size=*/1024u * 1024u, /*number_of_buffers=*/4u }
+  , m_input_reader{ m_input_file_wrapper,
+                    /*buffer_size=*/k_file_chunk_size_to_read + k_text_sha1_length_for_simd,
+                    /*size_to_read_from_storage=*/k_file_chunk_size_to_read,
+                    /*number_of_buffers=*/4u }
   , m_intermediate_files{ working_directory_path, std::ios::in | std::ios::out | std::ios::trunc }
   , m_output_file_wrapper{ output_file_path }
   , m_btree{ m_output_file_wrapper, /*order=*/1024u }
@@ -62,7 +66,7 @@ preparer::result preparer::prepare()
 void preparer::add_sha1_to_file(std::string_view sha1)
 {
   const auto index = two_first_chars_to_byte(sha1.data());
-  m_sha1_buffers[index].emplace_back(string_sha1_to_binary(sha1));
+  m_sha1_buffers[index].emplace_back(simd_string_sha1_to_binary(sha1.data()));
 
   if (m_sha1_buffers[index].size() >= k_sha1_buffer_max_size) {
     write_sha1_buffer(index);
