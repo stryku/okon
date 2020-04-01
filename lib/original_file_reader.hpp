@@ -115,7 +115,7 @@ void original_file_reader<DataStorage>::read_chunk()
   m_buffer = &m_buffers.access_buffer(*buffer_index);
 
   m_buffer_view = std::string_view{ reinterpret_cast<const char*>(m_buffer->data()),
-                                    m_size_to_read_from_storage };
+                                    m_buffer->size() - k_text_sha1_length_for_simd };
 }
 
 template <typename DataStorage>
@@ -144,13 +144,14 @@ void original_file_reader<DataStorage>::start_reader_thread()
       auto& buffer = m_buffers.access_buffer(buffer_index);
 
       const auto read_size = m_storage.read(&buffer[0], m_size_to_read_from_storage);
-      if (read_size == 0) {
+      if (read_size == 0u) {
         m_buffers.notify_no_more_data();
         return;
       }
 
-      if (read_size < buffer.size()) {
-        buffer.resize(read_size);
+      if (read_size < m_size_to_read_from_storage) {
+        const auto new_size = read_size + k_text_sha1_length_for_simd;
+        buffer.resize(new_size);
       }
 
       m_buffers.data_storing_ready();
