@@ -70,7 +70,7 @@ inline sha1_t simd_string_sha1_to_binary(const void* text)
   const auto shifted_16 = vcl::Vec32us{ shifted_8_to_left } << 8u;
 
   const auto v16 = vcl::Vec32us{ v8 };
-  const auto result = (v16 | shifted_16 & vcl::Vec32us{ 0xff00u }) >> 8u;
+  const auto result = (v16 | shifted_16) >> 8u;
 
   std::aligned_storage_t<sizeof(uint8_t) * 64u, 32u> result_storage;
   auto result_storage_ptr = reinterpret_cast<uint8_t*>(&result_storage);
