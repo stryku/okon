@@ -61,10 +61,10 @@ inline sha1_t simd_string_sha1_to_binary(const void* text)
   vcl::Vec64uc v8;
   v8.load(text);
 
-  v8 -= vcl::Vec64uc{ '0' };
-
-  const auto gt_nine_mask = v8 > vcl::Vec64uc{ 9u };
-  v8 = if_sub(gt_nine_mask, v8, vcl::Vec64uc{ 7u });
+  const auto is_alpha_mask = (v8 & 0b01000000u) != 0u;
+  
+  v8 &= vcl::Vec64uc{ 0x0fu };
+  v8 = if_add(is_alpha_mask, v8, vcl::Vec64uc{ 9u });
 
   const auto shifted_8_to_left = v8 << 4u;
   const auto shifted_16 = vcl::Vec32us{ shifted_8_to_left } << 8u;
