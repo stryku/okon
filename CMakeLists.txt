@@ -11,6 +11,15 @@ set(OKON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
 set(OKON_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(OKON_3RDPARTY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty)
 
+option(OKON_WITH_SIMD "Use SIMD where possible." OFF)
+if(OKON_WITH_SIMD)
+    if(OKON_ARCH)
+        add_definitions(-march=${OKON_ARCH})
+    else()
+        add_definitions(-march=skylake)
+    endif()
+endif()
+
 add_subdirectory(lib)
 
 option(OKON_WITH_CLI "Build okon-cli binary" OFF)

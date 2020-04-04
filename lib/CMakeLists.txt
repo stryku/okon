@@ -27,6 +27,7 @@ target_include_directories(okon
         ${OKON_3RDPARTY_DIR}
 )
 
+
 set_target_properties(okon
     PROPERTIES
         PUBLIC_HEADER ${OKON_INCLUDE_DIR}/okon/okon.h

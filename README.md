@@ -92,6 +92,8 @@ Then, even with a couple-GB file, searching is really fast.
 CMake and C++17 are required.
 
 CMake options:
+- `OKON_WITH_SIMD=ON/OFF` - Use SIMD where possible.
+  * `OKON_ARCH` - (optional) - If `OKON_WITH_SIMD` is set to `ON`, `OKON_ARCH` can be specified to compile `okon` with proper `-march=` argument. If not provided, `-march=skylake` is used.
 - `OKON_WITH_CLI=ON/OFF` - Build okon-cli binary.
 - `OKON_WITH_TESTS=ON/OFF` - Build tests.
 - `OKON_WITH_HEAVY_TEST=ON/OFF` - Add target for heavy test (requires python3). Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file. If `OKON_WITH_HEAVY_TEST` is set to ON:
