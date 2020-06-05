@@ -4,6 +4,8 @@
 #include <cassert>
 #include <cstdint>
 #include <cstring>
+#include <string>
+#include <string_view>
 
 #define VCL_NAMESPACE vcl
 #include <vcl/vectorclass.h>
@@ -62,7 +64,7 @@ inline sha1_t simd_string_sha1_to_binary(const void* text)
   v8.load(text);
 
   const auto is_alpha_mask = (v8 & 0b01000000u) != 0u;
-  
+
   v8 &= vcl::Vec64uc{ 0x0fu };
   v8 = if_add(is_alpha_mask, v8, vcl::Vec64uc{ 9u });
 

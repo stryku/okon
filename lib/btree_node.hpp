@@ -3,6 +3,7 @@
 #include "sha1_utils.hpp"
 
 #include <cstdint>
+#include <limits>
 #include <vector>
 
 namespace okon {
