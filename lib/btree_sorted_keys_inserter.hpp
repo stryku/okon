@@ -22,6 +22,7 @@ private:
   void split_root_and_grow(const sha1_t& sha1, unsigned level_from_leafs);
   void create_children_till_leaf(unsigned level_from_leafs);
   btree_node& current_node();
+  void rebalance_tree();
 
 private:
   btree_node::pointer_t m_next_node_ptr{ 0u };
@@ -55,6 +56,8 @@ void btree_sorted_keys_inserter<DataStorage>::finalize_inserting()
   for (const auto& node : m_current_path) {
     this->write_node(node);
   }
+
+  rebalance_tree()
 }
 
 template <typename DataStorage>
@@ -136,6 +139,11 @@ template <typename DataStorage>
 btree_node& btree_sorted_keys_inserter<DataStorage>::current_node()
 {
   return m_current_path.back();
+}
+
+template <typename DataStorage>
+void btree_sorted_keys_inserter<DataStorage>::rebalance_tree()
+{
 }
 
 }
