@@ -79,7 +79,8 @@ okon_prepare_result handle_prepare(const parsed_args_t& args)
   const auto output_file_directory = found_output->second;
 
   const auto progress = [](void*, int progress) {
-    if (progress == -1) {
+    if (progress ==
+        okon_prepare_progress_special_value::okon_prepare_progress_special_value_unknown) {
       std::cout << "Preparing... ";
       std::cout.flush();
     }

@@ -13,6 +13,20 @@ enum okon_prepare_result
   okon_prepare_result_could_not_open_output              //!< Issue while creating output file.
 };
 
+enum okon_prepare_progress_special_value
+{
+  okon_prepare_progress_special_value_unknown =
+    -1 //!< Work has been started but the progress can not be calculated at this point.
+};
+
+/** Preparation progress callback function type.
+ *
+ * @param user_data Pointer to user data. It will be passed in every callback call.
+ * @param progress The progress value from 0 to 100. Values in range [0, 100] should are regular
+ * progress value in percents. Values less than 0 are special values.
+ *
+ * @sa okon_prepare_progress_special_value.
+ */
 typedef void (*okon_prepare_progress_callback_t)(void* user_data, int progress);
 
 /** Prepares file based on input database.
@@ -23,6 +37,9 @@ typedef void (*okon_prepare_progress_callback_t)(void* user_data, int progress);
  * @param input_db_file_path Path to text file with hashes:count.
  * @param working_directory Directory where intermediate files are going to be created.
  * @param output_processed_file_path Path to file where output data should be written to.
+ * @param progress_callback Callback function to report progress. Optional parameter.
+ * @param progress_callback_user_data Pointer to user data to be passed to progress callback
+ * function. If @param progress_callback is NULL, this parameter is not used.
  */
 okon_prepare_result okon_prepare(const char* input_db_file_path, const char* working_directory,
                                  const char* output_processed_file_path,

@@ -52,7 +52,7 @@ private:
   btree_sorted_keys_inserter<fstream_wrapper> m_btree;
   std::vector<std::vector<sha1_t>> m_sha1_buffers;
 
-  // This value should be kept in sync with the one from okon.h
+  // This value should be kept in sync with okon_prepare_progress_special_value from okon.h
   static constexpr auto k_progress_unknown{ -1 };
   static constexpr auto k_progress_never_reported{ -2 };
   progress_callback_t m_progress_callback;
