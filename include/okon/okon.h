@@ -13,6 +13,8 @@ enum okon_prepare_result
   okon_prepare_result_could_not_open_output              //!< Issue while creating output file.
 };
 
+typedef void (*okon_prepare_progress_callback_t)(void* user_data, int progress);
+
 /** Prepares file based on input database.
  * Truncates 00-FF files in @param working_directory.
  * Truncates @param output_processed_file_path file.
@@ -23,7 +25,9 @@ enum okon_prepare_result
  * @param output_processed_file_path Path to file where output data should be written to.
  */
 okon_prepare_result okon_prepare(const char* input_db_file_path, const char* working_directory,
-                                 const char* output_processed_file_path);
+                                 const char* output_processed_file_path,
+                                 okon_prepare_progress_callback_t progress_callback,
+                                 void* progress_callback_user_data);
 
 enum okon_exists_result
 {

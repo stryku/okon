@@ -5,10 +5,25 @@
 #include "preparer.hpp"
 
 okon_prepare_result okon_prepare(const char* input_db_file_path, const char* working_directory,
-                                 const char* output_processed_file_path)
+                                 const char* output_processed_file_path,
+                                 okon_prepare_progress_callback_t user_progress_callback,
+                                 void* progress_callback_user_data)
 {
   std::ofstream{ output_processed_file_path };
-  okon::preparer preparer{ input_db_file_path, working_directory, output_processed_file_path };
+
+  const auto progress_callback =
+    [user_progress_callback, progress_callback_user_data]() -> okon::preparer::progress_callback_t {
+    if (!user_progress_callback) {
+      return [](int) {};
+    }
+
+    return [user_progress_callback, progress_callback_user_data](int progress) {
+      user_progress_callback(progress_callback_user_data, progress);
+    };
+  }();
+
+  okon::preparer preparer{ input_db_file_path, working_directory, output_processed_file_path,
+                           progress_callback };
   const auto result = preparer.prepare();
 
   switch (result) {

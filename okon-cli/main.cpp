@@ -78,8 +78,22 @@ okon_prepare_result handle_prepare(const parsed_args_t& args)
   const auto working_directory_path = found_wd->second;
   const auto output_file_directory = found_output->second;
 
+  const auto progress = [](void*, int progress) {
+    if (progress == -1) {
+      std::cout << "Preparing... ";
+      std::cout.flush();
+    }
+    if (progress % 10 == 0) {
+      std::cout << progress << "% ";
+      std::cout.flush();
+    }
+    if (progress == 100) {
+      std::cout << std::endl;
+    }
+  };
+
   return okon_prepare(input_file_path.data(), working_directory_path.data(),
-                      output_file_directory.data());
+                      output_file_directory.data(), progress, nullptr);
 }
 
 int handle_check(const parsed_args_t& args)

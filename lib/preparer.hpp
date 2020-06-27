@@ -9,6 +9,7 @@
 #include <array>
 #include <condition_variable>
 #include <fstream>
+#include <functional>
 #include <optional>
 #include <string_view>
 
@@ -26,8 +27,10 @@ public:
     could_not_open_output
   };
 
+  using progress_callback_t = std::function<void(int)>;
+
   explicit preparer(std::string_view input_file_path, std::string_view working_directory_path,
-                    std::string_view output_file_path);
+                    std::string_view output_file_path, progress_callback_t progress_callback);
 
   result prepare();
 
@@ -39,6 +42,8 @@ private:
 
   void write_sha1_buffer(unsigned buffer_index);
 
+  void report_progress(int progress);
+
 private:
   fstream_wrapper m_input_file_wrapper;
   original_file_reader<fstream_wrapper> m_input_reader;
@@ -46,6 +51,15 @@ private:
   fstream_wrapper m_output_file_wrapper;
   btree_sorted_keys_inserter<fstream_wrapper> m_btree;
   std::vector<std::vector<sha1_t>> m_sha1_buffers;
+
+  // This value should be kept in sync with the one from okon.h
+  static constexpr auto k_progress_unknown{ -1 };
+  static constexpr auto k_progress_never_reported{ -2 };
+  progress_callback_t m_progress_callback;
+  int m_last_reported_progress{ k_progress_never_reported };
+
+  unsigned m_total_sha1_count{};
+  unsigned m_sha1_written_to_tree_count{};
 
   std::mutex m_processing_sorted_files_mtx;
   std::array<std::condition_variable, k_intermediate_files_count> m_sorted_files_cvs;

@@ -15,7 +15,7 @@ constexpr auto k_sorting_threads{ 3u };
 
 namespace okon {
 preparer::preparer(std::string_view input_file_path, std::string_view working_directory_path,
-                   std::string_view output_file_path)
+                   std::string_view output_file_path, progress_callback_t progress_callback)
   : m_input_file_wrapper{ input_file_path }
   , m_input_reader{ m_input_file_wrapper,
                     /*buffer_size=*/k_file_chunk_size_to_read + k_text_sha1_length_for_simd,
@@ -26,6 +26,7 @@ preparer::preparer(std::string_view input_file_path, std::string_view working_di
   , m_btree{ m_output_file_wrapper, /*order=*/1024u }
   , m_sha1_buffers{ 256u }
   , m_sorted_files_ready_state{}
+  , m_progress_callback{ std::move(progress_callback) }
 {
   m_sorted_files_ready_state.fill(false);
 
@@ -48,8 +49,11 @@ preparer::result preparer::prepare()
     return result::could_not_open_output;
   }
 
+  report_progress(k_progress_unknown);
+
   while (const auto sha1 = m_input_reader.next_sha1()) {
     add_sha1_to_file(*sha1);
+    ++m_total_sha1_count;
   }
 
   for (auto i = 0u; i < m_sha1_buffers.size(); ++i) {
@@ -59,6 +63,8 @@ preparer::result preparer::prepare()
   start_writing_sorted_files_thread();
   sort_files();
   m_writing_sorted_files_thread.join();
+
+  report_progress(100);
 
   return result::success;
 }
@@ -136,6 +142,10 @@ void preparer::start_writing_sorted_files_thread()
 
       for (const auto& sha1 : sha1s) {
         m_btree.insert_sorted(sha1);
+
+        ++m_sha1_written_to_tree_count;
+        const auto progress = 100 * m_sha1_written_to_tree_count / m_total_sha1_count;
+        report_progress(progress);
       }
     }
 
@@ -148,5 +158,15 @@ void preparer::write_sha1_buffer(unsigned buffer_index)
   auto& file = m_intermediate_files[buffer_index];
   file.write(reinterpret_cast<const char*>(m_sha1_buffers[buffer_index][0].data()),
              sizeof(sha1_t) * m_sha1_buffers[buffer_index].size());
+}
+
+void preparer::report_progress(int progress)
+{
+  if (m_last_reported_progress == progress) {
+    return;
+  }
+
+  m_progress_callback(progress);
+  m_last_reported_progress = progress;
 }
 }
