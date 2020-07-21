@@ -30,6 +30,9 @@ public:
 
   bool is_full() const;
 
+  pointer_t rightmost_pointer() const;
+  uint32_t children_count() const;
+
 public:
   bool is_leaf{ false };
   pointer_t keys_count{ 0u };

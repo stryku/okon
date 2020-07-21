@@ -3,6 +3,7 @@
 #include "btree_base.hpp"
 #include "sha1_utils.hpp"
 
+#include <cmath>
 #include <vector>
 
 namespace okon {
@@ -23,16 +24,19 @@ private:
   void create_children_till_leaf(unsigned level_from_leafs);
   btree_node& current_node();
   void rebalance_tree();
+  void create_nodes_to_fulfill_b_tree(btree_node::pointer_t current_node_ptr, unsigned level);
 
 private:
   btree_node::pointer_t m_next_node_ptr{ 0u };
   std::vector<btree_node> m_current_path;
+  unsigned m_tree_height{ 0u };
 };
 
 template <typename DataStorage>
 btree_sorted_keys_inserter<DataStorage>::btree_sorted_keys_inserter(DataStorage& storage,
                                                                     btree_node::order_t order)
   : btree_base<DataStorage>{ storage, order }
+  , m_tree_height{ 1u }
 {
   auto& root = m_current_path.emplace_back(order, btree_node::k_unused_pointer);
 
@@ -110,6 +114,7 @@ void btree_sorted_keys_inserter<DataStorage>::split_root_and_grow(const sha1_t& 
   create_children_till_leaf(level_from_leafs);
 
   this->set_root_ptr(new_root_ptr);
+  ++m_tree_height;
 }
 
 template <typename DataStorage>
@@ -144,6 +149,50 @@ btree_node& btree_sorted_keys_inserter<DataStorage>::current_node()
 template <typename DataStorage>
 void btree_sorted_keys_inserter<DataStorage>::rebalance_tree()
 {
+  create_nodes_to_fulfill_b_tree(this->root_ptr(), 1u);
+}
+
+template <typename DataStorage>
+void btree_sorted_keys_inserter<DataStorage>::create_nodes_to_fulfill_b_tree(
+  btree_node::pointer_t current_node_ptr, unsigned level)
+{
+  auto node = this->read_node(current_node_ptr);
+  if (node.is_leaf) {
+    return;
+  }
+
+  if (current_node_ptr == this->root_ptr()) {
+    create_nodes_to_fulfill_b_tree(node.rightmost_pointer(), level + 1u);
+    return;
+  }
+
+  const auto expected_min_number_of_children =
+    static_cast<unsigned>(std::ceil(static_cast<float>(this->order()) / 2.f));
+
+  // While sorted inserting number of children is equal to number of keys, not number of keys + 1.
+  if (node.keys_count >= expected_min_number_of_children) {
+    return;
+  }
+
+  const auto children_are_leafs = (level + 1 == this->m_tree_height);
+
+  for (auto child_index = node.children_count() - 1; child_index < expected_min_number_of_children;
+       ++child_index) {
+
+    auto child = btree_node{ this->order(), node.this_pointer };
+    child.this_pointer = new_node_pointer();
+    child.keys_count = 0u;
+    child.is_leaf = children_are_leafs;
+
+    this->write_node(child);
+
+    node.pointers[node.keys_count] = child.this_pointer;
+    if (!children_are_leafs) {
+      create_nodes_to_fulfill_b_tree(child.this_pointer, level + 1u);
+    }
+  }
+
+  this->write_node(node);
 }
 
 }

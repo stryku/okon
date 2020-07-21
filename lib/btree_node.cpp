@@ -74,4 +74,14 @@ bool btree_node::contains(const sha1_t& sha1) const
 
   return *found == sha1;
 }
+
+btree_node::pointer_t btree_node::rightmost_pointer() const
+{
+  return pointers[keys_count];
+}
+
+uint32_t btree_node::children_count() const
+{
+  return keys_count + 1u;
+}
 }
