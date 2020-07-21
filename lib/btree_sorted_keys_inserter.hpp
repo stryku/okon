@@ -57,7 +57,7 @@ void btree_sorted_keys_inserter<DataStorage>::finalize_inserting()
     this->write_node(node);
   }
 
-  rebalance_tree()
+  rebalance_tree();
 }
 
 template <typename DataStorage>
