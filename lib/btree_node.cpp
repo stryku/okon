@@ -1,5 +1,7 @@
 #include "btree_node.hpp"
 
+#include <algorithm>
+
 namespace okon {
 btree_node::btree_node(uint32_t order, pointer_t parent_ptr)
   : pointers(order + 1, k_unused_pointer)
@@ -83,5 +85,26 @@ btree_node::pointer_t btree_node::rightmost_pointer() const
 uint32_t btree_node::children_count() const
 {
   return keys_count + 1u;
+}
+
+std::optional<btree_node::pointer_t> btree_node::get_child_pointer_prev_of(
+  btree_node::pointer_t ptr) const
+{
+  const auto ptr_index = index_of_child_pointer(ptr);
+  if (!ptr_index.has_value() || *ptr_index == 0u) {
+    return std::nullopt;
+  }
+
+  return pointers[*ptr_index - 1u];
+}
+
+std::optional<unsigned> btree_node::index_of_child_pointer(btree_node::pointer_t ptr) const
+{
+  const auto found = std::find(std::cbegin(pointers), std::cend(pointers), ptr);
+  if (found == std::cend(pointers)) {
+    return std::nullopt;
+  }
+
+  return static_cast<unsigned>(std::distance(std::cbegin(pointers), found));
 }
 }
