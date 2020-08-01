@@ -31,11 +31,25 @@ private:
 
   void rebalance_keys_in_node(btree_node& node);
 
+  void initialize_current_key_providing_path();
+
+  std::optional<btree_node> get_node_with_greatest_key();
+
   std::optional<btree_node> get_rightmost_not_visited_node(btree_node::pointer_t start_node_ptr);
   std::optional<btree_node> get_rightmost_not_visited_node2(btree_node::pointer_t start_node_ptr);
 
   unsigned get_number_of_keys_in_node_during_rebalance(const btree_node& node) const;
   unsigned get_number_of_keys_taken_from_node_during_rebalance(const btree_node& node) const;
+
+  sha1_t get_greatest_not_visited_key();
+
+  struct keys_provider_node_data
+  {
+    btree_node node;
+    btree_node::pointer_t child_index{ btree_node::k_unused_pointer };
+  };
+
+  keys_provider_node_data& current_key_providing_node();
 
 private:
   btree_node::pointer_t m_next_node_ptr{ 0u };
@@ -46,6 +60,8 @@ private:
 
   std::unordered_set<btree_node::pointer_t> m_nodes_created_during_rebalancing;
   std::unordered_map<btree_node::pointer_t, unsigned> m_keys_took_by_provider;
+
+  std::vector<keys_provider_node_data> m_current_key_providing_path;
 };
 
 template <typename DataStorage>
@@ -165,6 +181,11 @@ btree_node& btree_sorted_keys_inserter<DataStorage>::current_node()
 template <typename DataStorage>
 void btree_sorted_keys_inserter<DataStorage>::rebalance_tree()
 {
+  initialize_current_key_providing_path();
+  if (m_current_key_providing_path.empty()) {
+    return;
+  }
+
   create_nodes_to_fulfill_b_tree(this->root_ptr(), 1u);
   rebalance_keys();
 }
@@ -415,5 +436,137 @@ std::optional<btree_node> btree_sorted_keys_inserter<DataStorage>::get_rightmost
   }
 
   return std::nullopt;
+}
+
+template <typename DataStorage>
+sha1_t btree_sorted_keys_inserter<DataStorage>::get_greatest_not_visited_key()
+{
+  auto& current = current_key_providing_node();
+
+  const auto number_of_keys = get_number_of_keys_in_node_during_rebalance(current.node);
+  ++m_keys_took_by_provider[current.node.this_pointer];
+  const auto key = current.node.keys[number_of_keys - 1u];
+
+  if (current.node.is_leaf) {
+    if (number_of_keys == 0u) {
+      m_current_key_providing_path.pop_back();
+    }
+    return key;
+  }
+
+  // Can go to left sibling
+  if (current.child_index > 1u) {
+    --current.child_index;
+
+    bool is_leaf{ false };
+
+    do {
+      auto& cur = current_key_providing_node();
+
+      auto node = this->read_node(cur.node.pointers[cur.child_index]);
+      is_leaf = node.is_leaf;
+      const auto child_index = node.keys_count;
+      keys_provider_node_data data{ std::move(node), child_index };
+      m_current_key_providing_path.emplace_back(std::move(data));
+    } while (!is_leaf);
+
+    return key;
+  }
+
+  m_current_key_providing_path.pop_back();
+
+  return key;
+
+  //  auto& current = m_current_key_providing_path.back();
+  //  const auto number_of_keys = get_number_of_keys_in_node_during_rebalance(current.node);
+  //  if (number_of_keys == 0u) {
+  //    // goto next node
+  //
+  //    if (current.this_pointer == this->root_ptr()) {
+  //      if (current.child_index == 0u) {
+  //        // Todo: should not happen
+  //      }
+  //
+  //      --current.child_index;
+  //
+  //      std::vector<btree_node> nodes_path;
+  //
+  //      bool is_leaf{ false };
+  //
+  //      do {
+  //        auto& cur = m_current_key_providing_path.back();
+  //
+  //        auto node = this->read_node(cur.node.pointers[cur.child_index]);
+  //        is_leaf = node.is_leaf;
+  //        const auto child_index = node.keys_count;
+  //        m_current_key_providing_path.emplace_back({ std::move(node), child_index });
+  //      } while (!is_leaf);
+  //    } else {
+  //    }
+  //  }
+  //
+  //  ++m_keys_took_by_provider[current.this_pointer];
+  //  return current.keys[number_of_keys - 1u];
+}
+
+template <typename DataStorage>
+std::optional<btree_node> btree_sorted_keys_inserter<DataStorage>::get_node_with_greatest_key()
+{
+  std::vector<btree_node> nodes_path;
+
+  for (auto node = this->read_node(this->root_ptr()); !node.is_leaf;
+       node = this->read_node(node.rightmost_pointer())) {
+    nodes_path.emplace_back(std::move(node));
+  }
+
+  while (!nodes_path.empty() && nodes_path.back().keys_count == 0u) {
+    nodes_path.pop_back();
+  }
+
+  if (nodes_path.empty()) {
+    return std::nullopt;
+  }
+
+  return std::move(nodes_path.back());
+}
+
+template <typename DataStorage>
+void btree_sorted_keys_inserter<DataStorage>::initialize_current_key_providing_path()
+{
+  std::vector<btree_node> nodes_path;
+
+  auto ptr = this->root_ptr();
+
+  while (true) {
+    auto node = this->read_node(ptr);
+    const auto is_leaf = node.is_leaf;
+    ptr = node.rightmost_pointer();
+    nodes_path.emplace_back(std::move(node));
+
+    if (is_leaf) {
+      break;
+    }
+  }
+
+  while (!nodes_path.empty() && nodes_path.back().keys_count == 0u) {
+    nodes_path.pop_back();
+  }
+
+  if (nodes_path.empty()) {
+    return;
+  }
+
+  for (auto& node : nodes_path) {
+    const auto child_index = node.keys_count;
+    keys_provider_node_data data{ std::move(node), child_index };
+    m_current_key_providing_path.emplace_back(std::move(data));
+  }
+}
+
+template <typename DataStorage>
+typename btree_sorted_keys_inserter<DataStorage>::keys_provider_node_data&
+btree_sorted_keys_inserter<DataStorage>::current_key_providing_node()
+{
+  return m_current_key_providing_path.back();
 }
 }
