@@ -8,6 +8,7 @@ namespace okon::test {
 constexpr auto k_file_metadata_size{ sizeof(uint32_t) +
                                      sizeof(btree_node::pointer_t) }; // t + root pointer
 constexpr std::string_view k_empty_sha1{ "0000000000000000000000000000000000000000" };
+constexpr std::string_view k_uninteresting_sha1{ "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" };
 constexpr btree_node::order_t k_test_order_value{ 2u };
 
 #pragma pack(push, 1)
@@ -110,6 +111,8 @@ inline btree_node make_node(bool is_leaf, uint32_t keys_count,
 
 MATCHER_P(StorageEq, expected, "")
 {
+  const auto uninteresting_key = string_sha1_to_binary(k_uninteresting_sha1);
+
   const auto expected_storage = decode_storage<k_test_order_value>(expected);
   const auto result_storage = decode_storage<k_test_order_value>(arg);
 
@@ -152,21 +155,19 @@ MATCHER_P(StorageEq, expected, "")
 
     for (auto j = 0u; j < exp.pointers.size(); ++j) {
       if (result.pointers[j] != exp.pointers[j]) {
-        //        GTEST_COUT << "Result Node[" << i << "].Ptrs[" << j << "] (" << result.pointers[j]
-        //                   << ") != Expected Node[" << i << "].Ptrs[" << j << "] (" <<
-        //                   exp.pointers[j]
-        //                   << ")\n";
-        //        ok = false;
+        GTEST_COUT << "Result Node[" << i << "].Ptrs[" << j << "] (" << result.pointers[j]
+                   << ") != Expected Node[" << i << "].Ptrs[" << j << "] (" << exp.pointers[j]
+                   << ")\n";
+        ok = false;
       }
     }
 
     for (auto j = 0u; j < exp.keys.size(); ++j) {
-      if (result.keys[j] != exp.keys[j]) {
-        //        GTEST_COUT << "Result Node[" << i << "].Keys[" << j << "] ("
-        //                   << binary_sha1_to_string(result.keys[j]) << ") != Expected Node[" << i
-        //                   << "].Keys[" << j << "] (" << binary_sha1_to_string(exp.keys[j]) <<
-        //                   ")\n";
-        //        ok = false;
+      if (exp.keys[j] != uninteresting_key && result.keys[j] != exp.keys[j]) {
+        GTEST_COUT << "Result Node[" << i << "].Keys[" << j << "] ("
+                   << binary_sha1_to_string(result.keys[j]) << ") != Expected Node[" << i
+                   << "].Keys[" << j << "] (" << binary_sha1_to_string(exp.keys[j]) << ")\n";
+        ok = false;
       }
     }
 
