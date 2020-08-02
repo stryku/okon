@@ -199,7 +199,7 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3)
       { "3000000000000000000000000000000000000000", "4000000000000000000000000000000000000000" },
       1u),
     make_node(
-      /*is_leaf=*/true, /*keys_count=*/2u,
+      /*is_leaf=*/true, /*keys_count=*/1u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
       { "6000000000000000000000000000000000000000", k_uninteresting_sha1 }, 1u),
     make_node(
@@ -398,59 +398,64 @@ TEST(BtreeSortedKeysInserter, Order3_InsertionsTillTreeHeight3AndNextChild)
   tree.insert_sorted(string_sha1_to_binary("D000000000000000000000000000000000000000"));
   tree.insert_sorted(string_sha1_to_binary("E000000000000000000000000000000000000000"));
   tree.insert_sorted(string_sha1_to_binary("F000000000000000000000000000000000000000"));
-  tree.insert_sorted(string_sha1_to_binary("F100000000000000000000000000000000000000")); // 16
   tree.finalize_inserting();
 
   const auto root_ptr = 5u;
 
   const std::vector<btree_node> expected_nodes = {
+    // 0
     make_node(
       /*is_leaf=*/true, /*keys_count=*/3u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "0000000000000000000000000000000000000000", "1000000000000000000000000000000000000000",
-        "3000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-    make_node(
-      /*is_leaf=*/false, /*keys_count=*/3u,
-      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
-        btree_node::k_unused_pointer },
-      { "4000000000000000000000000000000000000000", "8000000000000000000000000000000000000000",
-        "C000000000000000000000000000000000000000" },
-      /*parent_ptr=*/root_ptr, /*order=*/3u),
-    make_node(
-      /*is_leaf=*/true, /*keys_count=*/3u,
-      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
-        btree_node::k_unused_pointer },
-      { "5000000000000000000000000000000000000000", "6000000000000000000000000000000000000000",
-        "7000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-    make_node(
-      /*is_leaf=*/true, /*keys_count=*/3u,
-      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
-        btree_node::k_unused_pointer },
-      { "9000000000000000000000000000000000000000", "A000000000000000000000000000000000000000",
-        "B000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-    make_node(
-      /*is_leaf=*/true, /*keys_count=*/3u,
-      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
-        btree_node::k_unused_pointer },
-      { "D000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
+        "2000000000000000000000000000000000000000" },
       /*parent_ptr=*/1u, /*order=*/3u),
 
+    // 1
     make_node(
-      /*is_leaf=*/false, /*keys_count=*/1u,
+      /*is_leaf=*/false, /*keys_count=*/3u, { 0u, 2u, 3u, 4u },
+      { "3000000000000000000000000000000000000000", "7000000000000000000000000000000000000000",
+        "B000000000000000000000000000000000000000" },
+      /*parent_ptr=*/root_ptr, /*order=*/3u),
+
+    // 2
+    make_node(
+      /*is_leaf=*/true, /*keys_count=*/3u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
-      { "E000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
+      { "4000000000000000000000000000000000000000", "5000000000000000000000000000000000000000",
+        "6000000000000000000000000000000000000000" },
+      /*parent_ptr=*/1u, /*order=*/3u),
+
+    // 3
+    make_node(
+      /*is_leaf=*/true, /*keys_count=*/3u,
+      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+        btree_node::k_unused_pointer },
+      { "8000000000000000000000000000000000000000", "9000000000000000000000000000000000000000",
+        "A000000000000000000000000000000000000000" },
+      /*parent_ptr=*/1u, /*order=*/3u),
+
+    // 4
+    make_node(
+      /*is_leaf=*/true, /*keys_count=*/1u,
+      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+        btree_node::k_unused_pointer },
+      { "C000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
+      /*parent_ptr=*/1u, /*order=*/3u),
+
+    // 5
+    make_node(
+      /*is_leaf=*/false, /*keys_count=*/1u,
+      { 1u, 6u, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
+      { "D000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
       /*parent_ptr=*/btree_node::k_unused_pointer, /*order=*/3u),
 
     // 6
     make_node(
-      /*is_leaf=*/false, /*keys_count=*/2u,
-      { 7u, 8u, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
-      { "F000000000000000000000000000000000000000", "F100000000000000000000000000000000000000",
+      /*is_leaf=*/false, /*keys_count=*/2u, { 7u, 8u, 9u, btree_node::k_unused_pointer },
+      { "E000000000000000000000000000000000000000", "F000000000000000000000000000000000000000",
         k_uninteresting_sha1 },
       /*parent_ptr=*/root_ptr, /*order=*/3u),
 
@@ -480,8 +485,116 @@ TEST(BtreeSortedKeysInserter, Order3_InsertionsTillTreeHeight3AndNextChild)
 
   };
 
-  const auto expected_storage = to_storage(k_test_order_value, root_ptr, expected_nodes);
+  const auto expected_storage = to_storage(3u, root_ptr, expected_nodes);
 
-  EXPECT_THAT(storage.m_storage, StorageEq(expected_storage));
+  EXPECT_THAT(storage.m_storage, StorageOrder3Eq(expected_storage));
 }
+
+// TEST(BtreeSortedKeysInserter, Order3_InsertionsTillTreeHeight3AndNextChild)
+//{
+//  memory_storage storage;
+//  btree_sorted_keys_inserter tree{ storage, 3u };
+//
+//  tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("2000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("3000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("4000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("5000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("6000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("7000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("8000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("9000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("A000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("B000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("C000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("D000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("E000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("F000000000000000000000000000000000000000"));
+//  tree.insert_sorted(string_sha1_to_binary("F100000000000000000000000000000000000000")); // 16
+//  tree.finalize_inserting();
+//
+//  const auto root_ptr = 5u;
+//
+//  const std::vector<btree_node> expected_nodes = {
+//    make_node(
+//      /*is_leaf=*/true, /*keys_count=*/3u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { "0000000000000000000000000000000000000000", "1000000000000000000000000000000000000000",
+//        "3000000000000000000000000000000000000000" },
+//      /*parent_ptr=*/1u, /*order=*/3u),
+//    make_node(
+//      /*is_leaf=*/false, /*keys_count=*/3u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { "4000000000000000000000000000000000000000", "8000000000000000000000000000000000000000",
+//        "C000000000000000000000000000000000000000" },
+//      /*parent_ptr=*/root_ptr, /*order=*/3u),
+//    make_node(
+//      /*is_leaf=*/true, /*keys_count=*/3u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { "5000000000000000000000000000000000000000", "6000000000000000000000000000000000000000",
+//        "7000000000000000000000000000000000000000" },
+//      /*parent_ptr=*/1u, /*order=*/3u),
+//    make_node(
+//      /*is_leaf=*/true, /*keys_count=*/3u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { "9000000000000000000000000000000000000000", "A000000000000000000000000000000000000000",
+//        "B000000000000000000000000000000000000000" },
+//      /*parent_ptr=*/1u, /*order=*/3u),
+//    make_node(
+//      /*is_leaf=*/true, /*keys_count=*/3u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { "D000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
+//      /*parent_ptr=*/1u, /*order=*/3u),
+//
+//    make_node(
+//      /*is_leaf=*/false, /*keys_count=*/1u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { "E000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
+//      /*parent_ptr=*/btree_node::k_unused_pointer, /*order=*/3u),
+//
+//    // 6
+//    make_node(
+//      /*is_leaf=*/false, /*keys_count=*/2u,
+//      { 7u, 8u, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
+//      { "F000000000000000000000000000000000000000", "F100000000000000000000000000000000000000",
+//        k_uninteresting_sha1 },
+//      /*parent_ptr=*/root_ptr, /*order=*/3u),
+//
+//    // 7
+//    make_node(
+//      /*is_leaf=*/true, /*keys_count=*/0u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
+//      /*parent_ptr=*/6u, /*order=*/3u),
+//
+//    // 8
+//    make_node(
+//      /*is_leaf=*/true, /*keys_count=*/0u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
+//      /*parent_ptr=*/6u, /*order=*/3u),
+//
+//    // 9
+//    make_node(
+//      /*is_leaf=*/true, /*keys_count=*/0u,
+//      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+//        btree_node::k_unused_pointer },
+//      { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
+//      /*parent_ptr=*/6u, /*order=*/3u),
+//
+//  };
+//
+//  const auto expected_storage = to_storage(k_test_order_value, root_ptr, expected_nodes);
+//
+//  EXPECT_THAT(storage.m_storage, StorageEq(expected_storage));
+//}
 }

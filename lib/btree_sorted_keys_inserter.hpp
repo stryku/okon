@@ -62,6 +62,7 @@ private:
   std::unordered_map<btree_node::pointer_t, unsigned> m_keys_took_by_provider;
 
   std::vector<keys_provider_node_data> m_current_key_providing_path;
+  std::unordered_set<btree_node::pointer_t> m_nodes_written_during_rebalancing;
 };
 
 template <typename DataStorage>
@@ -239,6 +240,18 @@ void btree_sorted_keys_inserter<DataStorage>::rebalance_keys()
 {
   auto root = this->read_node(this->root_ptr());
   rebalance_keys_in_node(root);
+
+  for (auto& node : m_current_key_providing_path) {
+    if (m_nodes_written_during_rebalancing.find(node.node.this_pointer) !=
+        std::cend(m_nodes_written_during_rebalancing)) {
+      continue;
+    }
+
+    if (node.node.keys_count != get_number_of_keys_in_node_during_rebalance(node.node)) {
+      node.node.keys_count = get_number_of_keys_in_node_during_rebalance(node.node);
+      this->write_node(node.node);
+    }
+  }
   //  // No node that needs to be check found.
   //  auto node = get_rightmost_not_visited_node2(this->root_ptr());
   //  if (!node.has_value()) {
@@ -278,7 +291,10 @@ void btree_sorted_keys_inserter<DataStorage>::rebalance_keys_in_node(btree_node&
 
   bool children_are_leafs = false;
 
-  for (int key_index = static_cast<int>(this->expected_min_number_of_keys() - 1);
+  const auto expected_number_of_keys =
+    (node.this_pointer == this->root_ptr()) ? 1u : this->expected_min_number_of_keys();
+
+  for (int key_index = static_cast<int>(expected_number_of_keys - 1);
        key_index >= static_cast<int>(number_of_keys); --key_index) {
     if (!children_are_leafs) {
       const auto child_ptr = node.pointers[key_index];
@@ -303,10 +319,15 @@ void btree_sorted_keys_inserter<DataStorage>::rebalance_keys_in_node(btree_node&
 
   const auto new_number_of_keys = this->get_number_of_keys_in_node_during_rebalance(node);
 
-  if (new_number_of_keys < this->expected_min_number_of_keys()) {
+  if (new_number_of_keys < expected_number_of_keys) {
     node.keys_count = new_number_of_keys;
-    for (int key_index = static_cast<int>(this->expected_min_number_of_keys() - 1);
+    for (int key_index = static_cast<int>(expected_number_of_keys - 1);
          key_index >= static_cast<int>(new_number_of_keys); --key_index) {
+
+      const auto key = this->get_greatest_not_visited_key();
+      node.keys[key_index] = key;
+      ++node.keys_count;
+
       if (!children_are_leafs) {
         const auto child_ptr = node.pointers[key_index];
         auto child = this->read_node(child_ptr);
@@ -316,15 +337,12 @@ void btree_sorted_keys_inserter<DataStorage>::rebalance_keys_in_node(btree_node&
           rebalance_keys_in_node(child);
         }
       }
-
-      const auto key = this->get_greatest_not_visited_key();
-      node.keys[key_index] = key;
-      ++node.keys_count;
     }
   }
 
   if (number_of_keys < this->expected_min_number_of_keys() ||
       new_number_of_keys < this->expected_min_number_of_keys()) {
+    m_nodes_written_during_rebalancing.insert(node.this_pointer);
     this->write_node(node);
   }
 }
