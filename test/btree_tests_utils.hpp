@@ -92,9 +92,10 @@ inline decoded_storage<Order> decode_storage(const std::vector<uint8_t>& binary_
 inline btree_node make_node(bool is_leaf, uint32_t keys_count,
                             std::vector<btree_node::pointer_t> pointers,
                             const std::vector<std::string_view>& keys,
-                            btree_node::pointer_t parent_ptr)
+                            btree_node::pointer_t parent_ptr,
+                            btree_node::order_t order = k_test_order_value)
 {
-  btree_node node{ k_test_order_value, 0u };
+  btree_node node{ order, 0u };
 
   node.is_leaf = is_leaf;
   node.keys_count = keys_count;
