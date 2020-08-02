@@ -460,7 +460,10 @@ sha1_t btree_sorted_keys_inserter<DataStorage>::get_greatest_not_visited_key()
         current.node.keys_count -= taken_keys_count;
         this->write_node(current.node);
       }
-      m_current_key_providing_path.pop_back();
+
+      while (current_key_providing_node().node.keys_count == 0u) {
+        m_current_key_providing_path.pop_back();
+      }
     }
     return key;
   }
