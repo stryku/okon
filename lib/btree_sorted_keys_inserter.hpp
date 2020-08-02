@@ -213,7 +213,7 @@ void btree_sorted_keys_inserter<DataStorage>::create_nodes_to_fulfill_b_tree(
 
   const auto children_are_leafs = (level + 1 == this->m_tree_height);
 
-  for (auto child_index = node.children_count() - 1; child_index < expected_min_number_of_children;
+  for (auto child_index = node.children_count(); child_index < expected_min_number_of_children;
        ++child_index) {
 
     auto child = btree_node{ this->order(), node.this_pointer };
@@ -274,18 +274,12 @@ void btree_sorted_keys_inserter<DataStorage>::rebalance_keys_in_node(btree_node&
   if (node.is_leaf) {
     return;
   }
-
-  // Node has enough keys. Nothing to do.
-  if (node.keys_count >= this->expected_min_number_of_keys()) {
-    return;
-  }
+  const auto number_of_keys = this->get_number_of_keys_in_node_during_rebalance(node);
 
   bool children_are_leafs = false;
 
-  const auto number_of_keys = this->get_number_of_keys_in_node_during_rebalance(node);
-
-  for (auto key_index = this->expected_min_number_of_keys() - 1u; key_index >= number_of_keys;
-       --key_index) {
+  for (int key_index = static_cast<int>(this->expected_min_number_of_keys() - 1);
+       key_index >= static_cast<int>(number_of_keys); --key_index) {
     if (!children_are_leafs) {
       const auto child_ptr = node.pointers[key_index];
       auto child = this->read_node(child_ptr);
@@ -298,48 +292,41 @@ void btree_sorted_keys_inserter<DataStorage>::rebalance_keys_in_node(btree_node&
 
     const auto key = this->get_greatest_not_visited_key();
     node.keys[key_index] = key;
+    ++node.keys_count;
   }
 
-  node.keys_count = this->expected_min_number_of_keys();
+  if (!children_are_leafs) {
+    const auto child_ptr = node.pointers[number_of_keys];
+    auto child = this->read_node(child_ptr);
+    rebalance_keys_in_node(child);
+  }
 
-  this->write_node(node);
+  const auto new_number_of_keys = this->get_number_of_keys_in_node_during_rebalance(node);
 
-  //  // Node has enough keys. Nothing to do.
-  //  if (node.keys_count >= this->expected_min_number_of_keys()) {
-  //    return;
-  //  }
-  //
-  //  m_visited_nodes.insert(node.this_pointer);
-  //
-  //  const auto missing_number_of_keys = this->expected_min_number_of_keys() - node.keys_count;
-  //  const auto keys = this->get_greatest_not_visited_keys(missing_number_of_keys);
-  //
-  //  // Copy got keys as node keys
-  //  std::copy(std::cbegin(keys), std::cend(keys), std::next(std::begin(node.keys),
-  //  node.keys_count)); node.keys_count = this->expected_min_number_of_keys();
-  //  this->write_node(node);
-  //
-  //  if(node.this_pointer != this->root_ptr()){
-  //
-  //
-  //
-  //  const auto parent = this->read_node(node.parent_pointer);
-  //
-  //  const auto number_of_keys_in_parent = this->get_number_of_keys_in_node_during_rebalance();
+  if (new_number_of_keys < this->expected_min_number_of_keys()) {
+    node.keys_count = new_number_of_keys;
+    for (int key_index = static_cast<int>(this->expected_min_number_of_keys() - 1);
+         key_index >= static_cast<int>(new_number_of_keys); --key_index) {
+      if (!children_are_leafs) {
+        const auto child_ptr = node.pointers[key_index];
+        auto child = this->read_node(child_ptr);
+        if (child.is_leaf) {
+          children_are_leafs = true;
+        } else {
+          rebalance_keys_in_node(child);
+        }
+      }
 
-  //  const auto parent = this->read_node(node.parent_pointer);
-  //  if (parent.this_pointer == this->root_ptr()) {
-  //    return;
-  //  }
-  //
-  //  const auto node_ptr_index_in_parent = parent.index_of_child_pointer(node.this_pointer);
-  //  if(!node_ptr_index_in_parent.has_value())
-  //  {
-  //    // Todo: should not happen.
-  //  }
-  //
-  //  const auto parent_key = this->get_greatest_not_visited_key();
-  //  parent.ke
+      const auto key = this->get_greatest_not_visited_key();
+      node.keys[key_index] = key;
+      ++node.keys_count;
+    }
+  }
+
+  if (number_of_keys < this->expected_min_number_of_keys() ||
+      new_number_of_keys < this->expected_min_number_of_keys()) {
+    this->write_node(node);
+  }
 }
 
 template <typename DataStorage>
@@ -455,7 +442,7 @@ sha1_t btree_sorted_keys_inserter<DataStorage>::get_greatest_not_visited_key()
   }
 
   // Can go to left sibling
-  if (current.child_index > 1u) {
+  if (current.child_index >= 1u) {
     --current.child_index;
 
     bool is_leaf{ false };
