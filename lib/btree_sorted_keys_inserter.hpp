@@ -33,10 +33,7 @@ private:
 
   void initialize_current_key_providing_path();
 
-  std::optional<btree_node> get_node_with_greatest_key();
-
   std::optional<btree_node> get_rightmost_not_visited_node(btree_node::pointer_t start_node_ptr);
-  std::optional<btree_node> get_rightmost_not_visited_node2(btree_node::pointer_t start_node_ptr);
 
   unsigned get_number_of_keys_in_node_during_rebalance(const btree_node& node) const;
   unsigned get_number_of_keys_taken_from_node_during_rebalance(const btree_node& node) const;
@@ -252,13 +249,6 @@ void btree_sorted_keys_inserter<DataStorage>::rebalance_keys()
       this->write_node(node.node);
     }
   }
-  //  // No node that needs to be check found.
-  //  auto node = get_rightmost_not_visited_node2(this->root_ptr());
-  //  if (!node.has_value()) {
-  //    return;
-  //  }
-  //
-  //  rebalance_keys_in_node(*node);
 }
 
 template <typename DataStorage>
@@ -345,56 +335,6 @@ void btree_sorted_keys_inserter<DataStorage>::rebalance_keys_in_node(btree_node&
     m_nodes_written_during_rebalancing.insert(node.this_pointer);
     this->write_node(node);
   }
-}
-
-template <typename DataStorage>
-std::optional<btree_node> btree_sorted_keys_inserter<DataStorage>::get_rightmost_not_visited_node2(
-  btree_node::pointer_t start_node_ptr)
-{
-  auto node = this->read_node(start_node_ptr);
-
-  while (!node.is_leaf) {
-    const auto rightmost_child_ptr = (m_nodes_created_during_rebalancing.find(node.this_pointer) ==
-                                      std::cend(m_nodes_created_during_rebalancing))
-      ? node.rightmost_pointer()
-      : node.pointers[this->expected_min_number_of_keys()];
-
-    node = this->read_node(rightmost_child_ptr);
-  }
-
-  // If the found leaf is root, nothing to return.
-  if (node.this_pointer == this->root_ptr()) {
-    return std::nullopt;
-  }
-
-  // We don't care about the leafs, so go one node up.
-  node = this->read_node(node.parent_pointer);
-
-  // If the found node is not visited, return it.
-  if (m_visited_nodes.find(node.this_pointer) == std::cend(m_visited_nodes)) {
-    return std::move(node);
-  }
-
-  // If the node is root, nothing to return.
-  if (node.this_pointer == this->root_ptr()) {
-    return std::nullopt;
-  }
-
-  const auto parent = this->read_node(node.parent_pointer);
-
-  auto sibling_ptr = parent.get_child_pointer_prev_of(node.this_pointer);
-  while (sibling_ptr.has_value()) {
-    if (m_visited_nodes.find(*sibling_ptr) == std::cend(m_visited_nodes)) {
-      auto rightmost_from_sibling = get_rightmost_not_visited_node(*sibling_ptr);
-      if (rightmost_from_sibling.has_value()) {
-        return std::move(rightmost_from_sibling);
-      }
-    }
-
-    sibling_ptr = parent.get_child_pointer_prev_of(*sibling_ptr);
-  }
-
-  return std::nullopt;
 }
 
 template <typename DataStorage>
@@ -491,58 +431,6 @@ sha1_t btree_sorted_keys_inserter<DataStorage>::get_greatest_not_visited_key()
   m_current_key_providing_path.pop_back();
 
   return key;
-
-  //  auto& current = m_current_key_providing_path.back();
-  //  const auto number_of_keys = get_number_of_keys_in_node_during_rebalance(current.node);
-  //  if (number_of_keys == 0u) {
-  //    // goto next node
-  //
-  //    if (current.this_pointer == this->root_ptr()) {
-  //      if (current.child_index == 0u) {
-  //        // Todo: should not happen
-  //      }
-  //
-  //      --current.child_index;
-  //
-  //      std::vector<btree_node> nodes_path;
-  //
-  //      bool is_leaf{ false };
-  //
-  //      do {
-  //        auto& cur = m_current_key_providing_path.back();
-  //
-  //        auto node = this->read_node(cur.node.pointers[cur.child_index]);
-  //        is_leaf = node.is_leaf;
-  //        const auto child_index = node.keys_count;
-  //        m_current_key_providing_path.emplace_back({ std::move(node), child_index });
-  //      } while (!is_leaf);
-  //    } else {
-  //    }
-  //  }
-  //
-  //  ++m_keys_took_by_provider[current.this_pointer];
-  //  return current.keys[number_of_keys - 1u];
-}
-
-template <typename DataStorage>
-std::optional<btree_node> btree_sorted_keys_inserter<DataStorage>::get_node_with_greatest_key()
-{
-  std::vector<btree_node> nodes_path;
-
-  for (auto node = this->read_node(this->root_ptr()); !node.is_leaf;
-       node = this->read_node(node.rightmost_pointer())) {
-    nodes_path.emplace_back(std::move(node));
-  }
-
-  while (!nodes_path.empty() && nodes_path.back().keys_count == 0u) {
-    nodes_path.pop_back();
-  }
-
-  if (nodes_path.empty()) {
-    return std::nullopt;
-  }
-
-  return std::move(nodes_path.back());
 }
 
 template <typename DataStorage>
