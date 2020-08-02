@@ -270,13 +270,17 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3AndNextChild)
       { "8000000000000000000000000000000000000000", k_uninteresting_sha1 },
       btree_node::k_unused_pointer),
     make_node(
-      /*is_leaf=*/false, /*keys_count=*/0u,
-      { 6u, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
-      { k_uninteresting_sha1, k_uninteresting_sha1 }, root_ptr),
+      /*is_leaf=*/false, /*keys_count=*/1u, { 6u, 7u, btree_node::k_unused_pointer },
+      { "9000000000000000000000000000000000000000", k_uninteresting_sha1 }, root_ptr),
     make_node(
-      /*is_leaf=*/true, /*keys_count=*/1u,
+      /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
-      { "9000000000000000000000000000000000000000", k_uninteresting_sha1 }, 5u)
+      { k_uninteresting_sha1, k_uninteresting_sha1 }, 5u),
+    make_node(
+      /*is_leaf=*/true, /*keys_count=*/0u,
+      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
+        btree_node::k_unused_pointer },
+      { k_uninteresting_sha1, k_uninteresting_sha1 }, 5u)
   };
 
   const auto expected_storage = to_storage(k_test_order_value, root_ptr, expected_nodes);
@@ -356,13 +360,16 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3AndAllRootChildren)
       { "F000000000000000000000000000000000000000", "F100000000000000000000000000000000000000" },
       5u),
     make_node(
-      /*is_leaf=*/false, /*keys_count=*/0u,
-      { 10u, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
-      { k_empty_sha1, k_empty_sha1 }, 4u),
+      /*is_leaf=*/false, /*keys_count=*/1u, { 10u, 11u, btree_node::k_unused_pointer },
+      { "F300000000000000000000000000000000000000", k_uninteresting_sha1 }, 4u),
     make_node(
-      /*is_leaf=*/true, /*keys_count=*/1u,
+      /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
-      { "F300000000000000000000000000000000000000", k_empty_sha1 }, 9u)
+      { k_uninteresting_sha1, k_uninteresting_sha1 }, 9u),
+    make_node(
+      /*is_leaf=*/true, /*keys_count=*/0u,
+      { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
+      { k_uninteresting_sha1, k_uninteresting_sha1 }, 9u)
   };
 
   const auto expected_storage = to_storage(k_test_order_value, root_ptr, expected_nodes);

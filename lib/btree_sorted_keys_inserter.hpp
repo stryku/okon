@@ -435,7 +435,13 @@ sha1_t btree_sorted_keys_inserter<DataStorage>::get_greatest_not_visited_key()
   const auto key = current.node.keys[number_of_keys - 1u];
 
   if (current.node.is_leaf) {
-    if (number_of_keys == 0u) {
+    if (number_of_keys == 1u) {
+      const auto taken_keys_count =
+        get_number_of_keys_taken_from_node_during_rebalance(current.node);
+      if (taken_keys_count > 0u) {
+        current.node.keys_count -= taken_keys_count;
+        this->write_node(current.node);
+      }
       m_current_key_providing_path.pop_back();
     }
     return key;
@@ -460,6 +466,7 @@ sha1_t btree_sorted_keys_inserter<DataStorage>::get_greatest_not_visited_key()
     return key;
   }
 
+  this->write_node(current.node);
   m_current_key_providing_path.pop_back();
 
   return key;
