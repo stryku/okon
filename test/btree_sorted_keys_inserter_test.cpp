@@ -379,8 +379,10 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight3AndAllRootChildren)
 
 TEST(BtreeSortedKeysInserter, Order3_InsertionsTillTreeHeight3)
 {
+  constexpr auto tree_order{ 3u };
+
   memory_storage storage;
-  btree_sorted_keys_inserter tree{ storage, 3u };
+  btree_sorted_keys_inserter tree{ storage, tree_order };
 
   tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
   tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
@@ -403,97 +405,79 @@ TEST(BtreeSortedKeysInserter, Order3_InsertionsTillTreeHeight3)
   const auto root_ptr = 5u;
 
   const std::vector<btree_node> expected_nodes = {
-    // 0
     make_node(
       /*is_leaf=*/true, /*keys_count=*/3u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "0000000000000000000000000000000000000000", "1000000000000000000000000000000000000000",
         "2000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-
-    // 1
+      /*parent_ptr=*/1u, tree_order),
     make_node(
       /*is_leaf=*/false, /*keys_count=*/3u, { 0u, 2u, 3u, 4u },
       { "3000000000000000000000000000000000000000", "7000000000000000000000000000000000000000",
         "B000000000000000000000000000000000000000" },
-      /*parent_ptr=*/root_ptr, /*order=*/3u),
-
-    // 2
+      /*parent_ptr=*/root_ptr, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/3u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "4000000000000000000000000000000000000000", "5000000000000000000000000000000000000000",
         "6000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-
-    // 3
+      /*parent_ptr=*/1u, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/3u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "8000000000000000000000000000000000000000", "9000000000000000000000000000000000000000",
         "A000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-
-    // 4
+      /*parent_ptr=*/1u, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/1u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "C000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/1u, /*order=*/3u),
-
-    // 5
+      /*parent_ptr=*/1u, tree_order),
     make_node(
       /*is_leaf=*/false, /*keys_count=*/1u,
       { 1u, 6u, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
       { "D000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/btree_node::k_unused_pointer, /*order=*/3u),
-
-    // 6
+      /*parent_ptr=*/btree_node::k_unused_pointer, tree_order),
     make_node(
       /*is_leaf=*/false, /*keys_count=*/2u, { 7u, 8u, 9u, btree_node::k_unused_pointer },
       { "E000000000000000000000000000000000000000", "F000000000000000000000000000000000000000",
         k_uninteresting_sha1 },
-      /*parent_ptr=*/root_ptr, /*order=*/3u),
-
-    // 7
+      /*parent_ptr=*/root_ptr, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/6u, /*order=*/3u),
-
-    // 8
+      /*parent_ptr=*/6u, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/6u, /*order=*/3u),
-
-    // 9
+      /*parent_ptr=*/6u, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/6u, /*order=*/3u),
-
+      /*parent_ptr=*/6u, tree_order),
   };
 
-  const auto expected_storage = to_storage(3u, root_ptr, expected_nodes);
+  const auto expected_storage = to_storage(tree_order, root_ptr, expected_nodes);
 
   EXPECT_THAT(storage.m_storage, StorageOrder3Eq(expected_storage));
 }
 
 TEST(BtreeSortedKeysInserter, Order3_InsertionsTillTreeHeight3AndNextChild)
 {
+  constexpr auto tree_order{ 3u };
+
   memory_storage storage;
-  btree_sorted_keys_inserter tree{ storage, 3u };
+  btree_sorted_keys_inserter tree{ storage, tree_order };
 
   tree.insert_sorted(string_sha1_to_binary("0000000000000000000000000000000000000000"));
   tree.insert_sorted(string_sha1_to_binary("1000000000000000000000000000000000000000"));
@@ -517,90 +501,70 @@ TEST(BtreeSortedKeysInserter, Order3_InsertionsTillTreeHeight3AndNextChild)
   const auto root_ptr = 5u;
 
   const std::vector<btree_node> expected_nodes = {
-    // 0
     make_node(
       /*is_leaf=*/true, /*keys_count=*/3u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "0000000000000000000000000000000000000000", "1000000000000000000000000000000000000000",
         "2000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-
-    // 1
+      /*parent_ptr=*/1u, tree_order),
     make_node(
       /*is_leaf=*/false, /*keys_count=*/3u, { 0u, 2u, 3u, 4u },
       { "3000000000000000000000000000000000000000", "7000000000000000000000000000000000000000",
         "B000000000000000000000000000000000000000" },
-      /*parent_ptr=*/root_ptr, /*order=*/3u),
-
-    // 2
+      /*parent_ptr=*/root_ptr, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/3u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "4000000000000000000000000000000000000000", "5000000000000000000000000000000000000000",
         "6000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-
-    // 3
+      /*parent_ptr=*/1u, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/3u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "8000000000000000000000000000000000000000", "9000000000000000000000000000000000000000",
         "A000000000000000000000000000000000000000" },
-      /*parent_ptr=*/1u, /*order=*/3u),
-
-    // 4
+      /*parent_ptr=*/1u, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/2u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { "C000000000000000000000000000000000000000", "D000000000000000000000000000000000000000",
         k_uninteresting_sha1 },
-      /*parent_ptr=*/1u, /*order=*/3u),
-
-    // 5
+      /*parent_ptr=*/1u, tree_order),
     make_node(
       /*is_leaf=*/false, /*keys_count=*/1u,
       { 1u, 6u, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
       { "E000000000000000000000000000000000000000", k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/btree_node::k_unused_pointer, /*order=*/3u),
-
-    // 6
+      /*parent_ptr=*/btree_node::k_unused_pointer, tree_order),
     make_node(
       /*is_leaf=*/false, /*keys_count=*/2u, { 7u, 8u, 9u, btree_node::k_unused_pointer },
       { "F000000000000000000000000000000000000000", "F100000000000000000000000000000000000000",
         k_uninteresting_sha1 },
-      /*parent_ptr=*/root_ptr, /*order=*/3u),
-
-    // 7
+      /*parent_ptr=*/root_ptr, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/6u, /*order=*/3u),
-
-    // 8
+      /*parent_ptr=*/6u, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/6u, /*order=*/3u),
-
-    // 9
+      /*parent_ptr=*/6u, tree_order),
     make_node(
       /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer,
         btree_node::k_unused_pointer },
       { k_uninteresting_sha1, k_uninteresting_sha1, k_uninteresting_sha1 },
-      /*parent_ptr=*/6u, /*order=*/3u),
-
+      /*parent_ptr=*/6u, tree_order),
   };
 
-  const auto expected_storage = to_storage(3u, root_ptr, expected_nodes);
+  const auto expected_storage = to_storage(tree_order, root_ptr, expected_nodes);
 
   EXPECT_THAT(storage.m_storage, StorageOrder3Eq(expected_storage));
 }
