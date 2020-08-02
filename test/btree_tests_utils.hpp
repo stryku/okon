@@ -109,12 +109,13 @@ inline btree_node make_node(bool is_leaf, uint32_t keys_count,
   return node;
 }
 
-MATCHER_P(StorageEq, expected, "")
+template <btree_node::order_t Order, typename Result, typename Expected>
+bool storage_eq_impl(Result&& result, Expected&& expected)
 {
   const auto uninteresting_key = string_sha1_to_binary(k_uninteresting_sha1);
 
-  const auto expected_storage = decode_storage<k_test_order_value>(expected);
-  const auto result_storage = decode_storage<k_test_order_value>(arg);
+  const auto expected_storage = decode_storage<Order>(expected);
+  const auto result_storage = decode_storage<Order>(result);
 
   auto ok{ true };
 
@@ -179,5 +180,15 @@ MATCHER_P(StorageEq, expected, "")
   }
 
   return ok;
+}
+
+MATCHER_P(StorageEq, expected, "")
+{
+  return storage_eq_impl<k_test_order_value>(arg, expected);
+}
+
+MATCHER_P(StorageOrder3Eq, expected, "")
+{
+  return storage_eq_impl<3u>(arg, expected);
 }
 }
