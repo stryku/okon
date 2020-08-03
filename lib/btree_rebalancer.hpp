@@ -19,8 +19,7 @@ public:
 
 private:
   btree_node::pointer_t new_node_pointer();
-  void create_nodes_to_fulfill_b_tree(btree_node::pointer_t current_node_ptr,
-                                      unsigned current_level);
+  void create_nodes_to_fulfill_b_tree(btree_node& current_node_ptr, unsigned current_level);
   void rebalance_keys();
 
   void rebalance_keys_in_node(btree_node& node);
@@ -71,23 +70,26 @@ void btree_rebalancer<DataStorage>::rebalance()
 
   initialize_current_key_providing_path();
 
-  create_nodes_to_fulfill_b_tree(this->root_ptr(), /*current_level=*/1u);
+  {
+    auto root_node = this->read_node(this->root_ptr());
+    create_nodes_to_fulfill_b_tree(root_node, /*current_level=*/1u);
+  }
   rebalance_keys();
 }
 
 template <typename DataStorage>
-void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(
-  btree_node::pointer_t current_node_ptr, unsigned current_level)
+void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(btree_node& node,
+                                                                   unsigned current_level)
 {
-  auto node = this->read_node(current_node_ptr);
   if (node.is_leaf) {
     return;
   }
 
   // The root node needs to be treated specially. It is guaranteed that after sorted inserting it
   // has correct number of children. But, the rightmost child's subtree can be incorrect.
-  if (current_node_ptr == this->root_ptr()) {
-    create_nodes_to_fulfill_b_tree(node.rightmost_pointer(), current_level + 1u);
+  if (node.this_pointer == this->root_ptr()) {
+    auto rightmost_child = this->read_node(node.rightmost_pointer());
+    create_nodes_to_fulfill_b_tree(rightmost_child, current_level + 1u);
     return;
   }
 
@@ -111,11 +113,11 @@ void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(
 
     m_nodes_created_during_rebalancing.insert(child.this_pointer);
 
-    this->write_node(child);
-
     node.pointers[child_index] = child.this_pointer;
-    if (!children_are_leafs) {
-      create_nodes_to_fulfill_b_tree(child.this_pointer, current_level + 1u);
+    if (children_are_leafs) {
+      this->write_node(child);
+    } else {
+      create_nodes_to_fulfill_b_tree(child, current_level + 1u);
     }
   }
 
