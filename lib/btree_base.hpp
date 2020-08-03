@@ -14,6 +14,9 @@ public:
   explicit btree_base(DataStorage& storage);
 
 protected:
+  explicit btree_base(DataStorage& storage, btree_node::order_t order,
+                      btree_node::pointer_t root_ptr);
+
   btree_node read_node(btree_node::pointer_t ptr) const;
   void write_node(const btree_node& node) const;
 

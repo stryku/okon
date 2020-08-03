@@ -3,6 +3,7 @@ add_library(okon STATIC
     btree_base.hpp
     btree_node.cpp
     btree_node.hpp
+    btree_rebalancer.hpp
     btree_sorted_keys_inserter.hpp
     buffers_queue.cpp
     buffers_queue.hpp
