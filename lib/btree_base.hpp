@@ -26,7 +26,7 @@ protected:
   uint64_t node_offset(btree_node::pointer_t ptr) const;
   btree_node::order_t order() const;
 
-  unsigned expected_min_number_of_keys() const;
+  unsigned expected_min_number_of_keys(const btree_node& node) const;
 
 private:
   DataStorage& m_storage;
@@ -122,10 +122,11 @@ btree_node::pointer_t btree_base<DataStorage>::root_ptr() const
   return m_root_ptr;
 }
 template <typename DataStorage>
-unsigned btree_base<DataStorage>::expected_min_number_of_keys() const
+unsigned btree_base<DataStorage>::expected_min_number_of_keys(const btree_node& node) const
 {
-
-  return static_cast<unsigned>(std::ceil(static_cast<float>(this->order()) / 2.f));
+  return node.this_pointer == this->root_ptr()
+    ? 1u
+    : static_cast<unsigned>(std::ceil(static_cast<float>(this->order()) / 2.f));
 }
 
 }

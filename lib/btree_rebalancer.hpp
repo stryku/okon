@@ -19,7 +19,8 @@ public:
 
 private:
   btree_node::pointer_t new_node_pointer();
-  void create_nodes_to_fulfill_b_tree(btree_node::pointer_t current_node_ptr, unsigned level);
+  void create_nodes_to_fulfill_b_tree(btree_node::pointer_t current_node_ptr,
+                                      unsigned current_level);
   void rebalance_keys();
 
   void rebalance_keys_in_node(btree_node& node);
@@ -31,24 +32,22 @@ private:
 
   sha1_t get_greatest_not_visited_key();
 
-  struct keys_provider_node_data
+  struct keys_provider_path_part_data
   {
     btree_node node;
     btree_node::pointer_t child_index{ btree_node::k_unused_pointer };
   };
 
-  keys_provider_node_data& current_key_providing_node();
+  keys_provider_path_part_data& current_key_providing_node();
 
 private:
   btree_node::pointer_t m_next_node_ptr;
   unsigned m_tree_height;
 
-  std::unordered_set<btree_node::pointer_t> m_visited_nodes;
-
   std::unordered_set<btree_node::pointer_t> m_nodes_created_during_rebalancing;
   std::unordered_map<btree_node::pointer_t, unsigned> m_keys_took_by_provider;
 
-  std::vector<keys_provider_node_data> m_current_key_providing_path;
+  std::vector<keys_provider_path_part_data> m_current_key_providing_path;
   std::unordered_set<btree_node::pointer_t> m_nodes_written_during_rebalancing;
 };
 
@@ -65,41 +64,46 @@ btree_rebalancer<DataStorage>::btree_rebalancer(DataStorage& storage,
 template <typename DataStorage>
 void btree_rebalancer<DataStorage>::rebalance()
 {
-  initialize_current_key_providing_path();
-  if (m_current_key_providing_path.empty()) {
+  const auto tree_is_empty = m_next_node_ptr == 0u;
+  if (tree_is_empty) {
     return;
   }
 
-  create_nodes_to_fulfill_b_tree(this->root_ptr(), 1u);
+  initialize_current_key_providing_path();
+
+  create_nodes_to_fulfill_b_tree(this->root_ptr(), /*current_level=*/1u);
   rebalance_keys();
 }
 
 template <typename DataStorage>
 void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(
-  btree_node::pointer_t current_node_ptr, unsigned level)
+  btree_node::pointer_t current_node_ptr, unsigned current_level)
 {
   auto node = this->read_node(current_node_ptr);
   if (node.is_leaf) {
     return;
   }
 
+  // The root node needs to be treated specially. It is guaranteed that after sorted inserting it
+  // has correct number of children. But, the rightmost child's subtree can be incorrect.
   if (current_node_ptr == this->root_ptr()) {
-    create_nodes_to_fulfill_b_tree(node.rightmost_pointer(), level + 1u);
+    create_nodes_to_fulfill_b_tree(node.rightmost_pointer(), current_level + 1u);
     return;
   }
 
-  const auto expected_min_number_of_children = this->expected_min_number_of_keys() + 1u;
+  const auto expected_min_number_of_children = this->expected_min_number_of_keys(node) + 1u;
 
   // While sorted inserting number of children is equal to number of keys, not number of keys + 1.
-  if (node.keys_count >= expected_min_number_of_children) {
+  const auto has_enough_children = (node.keys_count >= expected_min_number_of_children);
+  if (has_enough_children) {
     return;
   }
 
-  const auto children_are_leafs = (level + 1 == this->m_tree_height);
+  const auto children_are_leafs = (current_level + 1u == this->m_tree_height);
 
+  // Create missing children.
   for (auto child_index = node.children_count(); child_index < expected_min_number_of_children;
        ++child_index) {
-
     auto child = btree_node{ this->order(), node.this_pointer };
     child.this_pointer = new_node_pointer();
     child.keys_count = 0u;
@@ -111,7 +115,7 @@ void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(
 
     node.pointers[child_index] = child.this_pointer;
     if (!children_are_leafs) {
-      create_nodes_to_fulfill_b_tree(child.this_pointer, level + 1u);
+      create_nodes_to_fulfill_b_tree(child.this_pointer, current_level + 1u);
     }
   }
 
@@ -149,12 +153,12 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
   if (node.is_leaf) {
     return;
   }
+
   const auto number_of_keys = this->get_number_of_keys_in_node_during_rebalance(node);
 
   bool children_are_leafs = false;
 
-  const auto expected_number_of_keys =
-    (node.this_pointer == this->root_ptr()) ? 1u : this->expected_min_number_of_keys();
+  const auto expected_number_of_keys = this->expected_min_number_of_keys(node);
 
   for (int key_index = static_cast<int>(expected_number_of_keys - 1);
        key_index >= static_cast<int>(number_of_keys); --key_index) {
@@ -202,19 +206,20 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
     }
   }
 
-  if (number_of_keys < this->expected_min_number_of_keys() ||
-      new_number_of_keys < this->expected_min_number_of_keys()) {
+  if (const auto current_num_of_keys = this->expected_min_number_of_keys(node);
+      number_of_keys < current_num_of_keys || new_number_of_keys < current_num_of_keys) {
     m_nodes_written_during_rebalancing.insert(node.this_pointer);
     this->write_node(node);
   }
 }
+
 template <typename DataStorage>
 void btree_rebalancer<DataStorage>::initialize_current_key_providing_path()
 {
   std::vector<btree_node> nodes_path;
 
+  // Go to rightmost leaf node.
   auto ptr = this->root_ptr();
-
   while (true) {
     auto node = this->read_node(ptr);
     const auto is_leaf = node.is_leaf;
@@ -226,17 +231,14 @@ void btree_rebalancer<DataStorage>::initialize_current_key_providing_path()
     }
   }
 
+  // Omit all empty nodes in the path.
   while (!nodes_path.empty() && nodes_path.back().keys_count == 0u) {
     nodes_path.pop_back();
   }
 
-  if (nodes_path.empty()) {
-    return;
-  }
-
   for (auto& node : nodes_path) {
     const auto child_index = node.keys_count;
-    keys_provider_node_data data{ std::move(node), child_index };
+    keys_provider_path_part_data data{ std::move(node), child_index };
     m_current_key_providing_path.emplace_back(std::move(data));
   }
 }
@@ -297,7 +299,7 @@ sha1_t btree_rebalancer<DataStorage>::get_greatest_not_visited_key()
       auto node = this->read_node(cur.node.pointers[cur.child_index]);
       is_leaf = node.is_leaf;
       const auto child_index = node.keys_count;
-      keys_provider_node_data data{ std::move(node), child_index };
+      keys_provider_path_part_data data{ std::move(node), child_index };
       m_current_key_providing_path.emplace_back(std::move(data));
     } while (!is_leaf);
 
@@ -311,7 +313,7 @@ sha1_t btree_rebalancer<DataStorage>::get_greatest_not_visited_key()
 }
 
 template <typename DataStorage>
-typename btree_rebalancer<DataStorage>::keys_provider_node_data&
+typename btree_rebalancer<DataStorage>::keys_provider_path_part_data&
 btree_rebalancer<DataStorage>::current_key_providing_node()
 {
   return m_current_key_providing_path.back();
