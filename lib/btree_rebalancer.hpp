@@ -26,8 +26,6 @@ private:
 
   void initialize_current_key_providing_path();
 
-  std::optional<btree_node> get_rightmost_not_visited_node(btree_node::pointer_t start_node_ptr);
-
   unsigned get_number_of_keys_in_node_during_rebalance(const btree_node& node) const;
   unsigned get_number_of_keys_taken_from_node_during_rebalance(const btree_node& node) const;
 
@@ -43,7 +41,6 @@ private:
 
 private:
   btree_node::pointer_t m_next_node_ptr;
-  std::vector<btree_node> m_current_path;
   unsigned m_tree_height;
 
   std::unordered_set<btree_node::pointer_t> m_visited_nodes;
@@ -242,52 +239,6 @@ void btree_rebalancer<DataStorage>::initialize_current_key_providing_path()
     keys_provider_node_data data{ std::move(node), child_index };
     m_current_key_providing_path.emplace_back(std::move(data));
   }
-}
-
-template <typename DataStorage>
-std::optional<btree_node> btree_rebalancer<DataStorage>::get_rightmost_not_visited_node(
-  btree_node::pointer_t start_node_ptr)
-{
-  auto node = this->read_node(start_node_ptr);
-
-  // Get rightmost leaf
-  while (!node.is_leaf) {
-    node = this->read_node(node.rightmost_pointer());
-  }
-
-  // If the found leaf is root, nothing to return.
-  if (node.this_pointer == this->root_ptr()) {
-    return std::nullopt;
-  }
-
-  // We don't care about the leafs, so go one node up.
-  node = this->read_node(node.parent_pointer);
-
-  // If the found node is not visited, return it.
-  if (m_visited_nodes.find(node.this_pointer) == std::cend(m_visited_nodes)) {
-    return std::move(node);
-  }
-
-  // If the node is root, nothing to return.
-  if (node.this_pointer == this->root_ptr()) {
-    return std::nullopt;
-  }
-
-  const auto parent = this->read_node(node.parent_pointer);
-
-  auto sibling_ptr = parent.get_child_pointer_prev_of(node.this_pointer);
-  while (sibling_ptr.has_value()) {
-    if (m_visited_nodes.find(*sibling_ptr) == std::cend(m_visited_nodes)) {
-      auto rightmost_from_sibling = get_rightmost_not_visited_node(*sibling_ptr);
-      if (rightmost_from_sibling.has_value()) {
-        return std::move(rightmost_from_sibling);
-      }
-    }
-
-    sibling_ptr = parent.get_child_pointer_prev_of(*sibling_ptr);
-  }
-
-  return std::nullopt;
 }
 
 template <typename DataStorage>
