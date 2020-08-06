@@ -74,6 +74,7 @@ void btree_rebalancer<DataStorage>::rebalance()
     auto root_node = this->read_node(this->root_ptr());
     create_nodes_to_fulfill_b_tree(root_node, /*current_level=*/1u);
   }
+
   rebalance_keys();
 }
 
@@ -114,6 +115,8 @@ void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(btree_node& n
     m_nodes_created_during_rebalancing.insert(child.this_pointer);
 
     node.pointers[child_index] = child.this_pointer;
+
+    // If the child is leaf, just write it out. If not, handle the child's subtree.
     if (children_are_leafs) {
       this->write_node(child);
     } else {
@@ -156,14 +159,15 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
     return;
   }
 
-  const auto number_of_keys = this->get_number_of_keys_in_node_during_rebalance(node);
+  const auto number_of_keys_before_this_subtree_rebalancing =
+    this->get_number_of_keys_in_node_during_rebalance(node);
 
   bool children_are_leafs = false;
 
   const auto expected_number_of_keys = this->expected_min_number_of_keys(node);
 
   for (int key_index = static_cast<int>(expected_number_of_keys - 1);
-       key_index >= static_cast<int>(number_of_keys); --key_index) {
+       key_index >= static_cast<int>(number_of_keys_before_this_subtree_rebalancing); --key_index) {
     if (!children_are_leafs) {
       const auto child_ptr = node.pointers[key_index];
       auto child = this->read_node(child_ptr);
@@ -179,18 +183,23 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
     ++node.keys_count;
   }
 
+  // Handle the rightmost child.
   if (!children_are_leafs) {
-    const auto child_ptr = node.pointers[number_of_keys];
+    const auto rightmost_child_ptr_index = number_of_keys_before_this_subtree_rebalancing;
+    const auto child_ptr = node.pointers[rightmost_child_ptr_index];
     auto child = this->read_node(child_ptr);
     rebalance_keys_in_node(child);
   }
 
-  const auto new_number_of_keys = this->get_number_of_keys_in_node_during_rebalance(node);
+  const auto number_of_keys_after_this_subtree_rebalancing =
+    this->get_number_of_keys_in_node_during_rebalance(node);
 
-  if (new_number_of_keys < expected_number_of_keys) {
-    node.keys_count = new_number_of_keys;
+  if (number_of_keys_after_this_subtree_rebalancing < expected_number_of_keys) {
+    node.keys_count = number_of_keys_after_this_subtree_rebalancing;
+
     for (int key_index = static_cast<int>(expected_number_of_keys - 1);
-         key_index >= static_cast<int>(new_number_of_keys); --key_index) {
+         key_index >= static_cast<int>(number_of_keys_after_this_subtree_rebalancing);
+         --key_index) {
 
       const auto key = this->get_greatest_not_visited_key();
       node.keys[key_index] = key;
@@ -209,7 +218,8 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
   }
 
   if (const auto current_num_of_keys = this->expected_min_number_of_keys(node);
-      number_of_keys < current_num_of_keys || new_number_of_keys < current_num_of_keys) {
+      number_of_keys_before_this_subtree_rebalancing < current_num_of_keys ||
+      number_of_keys_after_this_subtree_rebalancing < current_num_of_keys) {
     m_nodes_written_during_rebalancing.insert(node.this_pointer);
     this->write_node(node);
   }
