@@ -19,7 +19,7 @@ public:
 
 private:
   btree_node::pointer_t new_node_pointer();
-  void create_nodes_to_fulfill_b_tree(btree_node& current_node_ptr, unsigned current_level);
+  void create_nodes_to_fulfill_b_tree(btree_node& node, unsigned current_level);
   void rebalance_keys();
 
   void rebalance_keys_in_node(btree_node& node);
