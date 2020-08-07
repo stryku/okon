@@ -185,7 +185,7 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
     ++node.keys_count;
   }
 
-  // Handle the rightmost child.
+  // Handle the child that was the rightmost one before rebalancing.
   if (!children_are_leafs) {
     const auto rightmost_child_ptr_index = number_of_keys_before_this_subtree_rebalancing;
     const auto child_ptr = node.pointers[rightmost_child_ptr_index];
