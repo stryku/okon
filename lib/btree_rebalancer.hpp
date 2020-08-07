@@ -86,26 +86,23 @@ void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(btree_node& n
     return;
   }
 
-  // The root node needs to be treated specially. It is guaranteed that after sorted inserting it
-  // has correct number of children. But, the rightmost child's subtree can be incorrect.
-  if (node.this_pointer == this->root_ptr()) {
+  const auto children_are_leafs = (current_level + 1u == this->m_tree_height);
+  const auto children_count = node.children_count();
+  if (!children_are_leafs && children_count > 0u) {
     auto rightmost_child = this->read_node(node.rightmost_pointer());
     create_nodes_to_fulfill_b_tree(rightmost_child, current_level + 1u);
-    return;
   }
 
   const auto expected_min_number_of_children = this->expected_min_number_of_keys(node) + 1u;
 
   // While sorted inserting number of children is equal to number of keys, not number of keys + 1.
-  const auto has_enough_children = (node.keys_count >= expected_min_number_of_children);
+  const auto has_enough_children = (children_count >= expected_min_number_of_children);
   if (has_enough_children) {
     return;
   }
 
-  const auto children_are_leafs = (current_level + 1u == this->m_tree_height);
-
   // Create missing children.
-  for (auto child_index = node.children_count(); child_index < expected_min_number_of_children;
+  for (auto child_index = children_count; child_index < expected_min_number_of_children;
        ++child_index) {
     auto child = btree_node{ this->order(), node.this_pointer };
     child.this_pointer = new_node_pointer();
