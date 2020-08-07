@@ -75,7 +75,7 @@ void btree_rebalancer<DataStorage>::rebalance()
     create_nodes_to_fulfill_b_tree(root_node, /*current_level=*/1u);
   }
 
-  //  rebalance_keys();
+  rebalance_keys();
 }
 
 template <typename DataStorage>
@@ -168,7 +168,7 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
   for (int key_index = static_cast<int>(expected_number_of_keys - 1);
        key_index >= static_cast<int>(number_of_keys_before_this_subtree_rebalancing); --key_index) {
     if (!children_are_leafs) {
-      const auto child_ptr = node.pointers[key_index];
+      const auto child_ptr = node.pointers[key_index + 1u];
       auto child = this->read_node(child_ptr);
       if (child.is_leaf) {
         children_are_leafs = true;

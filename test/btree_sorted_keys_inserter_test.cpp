@@ -630,7 +630,6 @@ TEST(BtreeSortedKeysInserter, InsertionsTillTreeHeight4)
       /*is_leaf=*/true, /*keys_count=*/0u,
       { btree_node::k_unused_pointer, btree_node::k_unused_pointer, btree_node::k_unused_pointer },
       { k_uninteresting_sha1, k_uninteresting_sha1 }, 18u),
-
   };
 
   const auto expected_storage = to_storage(k_test_order_value, root_ptr, expected_nodes);
