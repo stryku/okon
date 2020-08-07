@@ -159,6 +159,8 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
     return;
   }
 
+  const auto number_of_keys_expected_after_rebalancing = node.keys_count;
+
   const auto number_of_keys_before_this_subtree_rebalancing =
     this->get_number_of_keys_in_node_during_rebalance(node);
 
@@ -197,12 +199,12 @@ void btree_rebalancer<DataStorage>::rebalance_keys_in_node(btree_node& node)
   const auto number_of_keys_after_this_subtree_rebalancing =
     this->get_number_of_keys_in_node_during_rebalance(node);
 
-  if (number_of_keys_after_this_subtree_rebalancing < expected_number_of_keys) {
+  if (number_of_keys_after_this_subtree_rebalancing < number_of_keys_expected_after_rebalancing) {
     is_dirty = true;
 
     node.keys_count = number_of_keys_after_this_subtree_rebalancing;
 
-    for (int key_index = static_cast<int>(expected_number_of_keys - 1);
+    for (int key_index = static_cast<int>(number_of_keys_expected_after_rebalancing - 1);
          key_index >= static_cast<int>(number_of_keys_after_this_subtree_rebalancing);
          --key_index) {
 
