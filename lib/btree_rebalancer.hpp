@@ -75,7 +75,7 @@ void btree_rebalancer<DataStorage>::rebalance()
     create_nodes_to_fulfill_b_tree(root_node, /*current_level=*/1u);
   }
 
-  rebalance_keys();
+  //  rebalance_keys();
 }
 
 template <typename DataStorage>

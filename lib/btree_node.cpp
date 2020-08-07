@@ -84,6 +84,10 @@ btree_node::pointer_t btree_node::rightmost_pointer() const
 
 uint32_t btree_node::children_count() const
 {
+  const auto found = std::find_if(std::cbegin(pointers), std::cend(pointers),
+                                  [](const auto& ptr) { return ptr == k_unused_pointer; });
+  return std::distance(std::cbegin(pointers), found);
+
   return keys_count + 1u;
 }
 
