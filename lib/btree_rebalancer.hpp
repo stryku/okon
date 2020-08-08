@@ -88,6 +88,7 @@ void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(btree_node& n
 
   const auto children_are_leafs = (current_level + 1u == this->m_tree_height);
   const auto children_count = node.children_count();
+  
   if (!children_are_leafs && children_count > 0u) {
     auto rightmost_child = this->read_node(node.rightmost_pointer());
     create_nodes_to_fulfill_b_tree(rightmost_child, current_level + 1u);
@@ -258,12 +259,19 @@ sha1_t btree_rebalancer<DataStorage>::get_greatest_not_visited_key()
 {
   auto& current = current_key_providing_node();
 
-  const auto number_of_keys = get_number_of_keys_in_node_during_rebalance(current.node);
+  const auto index_of_key_to_take = get_number_of_keys_in_node_during_rebalance(current.node) - 1u;
   ++m_keys_took_by_provider[current.node.this_pointer];
-  const auto key = current.node.keys[number_of_keys - 1u];
+  const auto key = current.node.keys[index_of_key_to_take];
+
+  const auto skip_empty_nodes_in_path = [this] {
+    while (current_key_providing_node().node.keys_count == 0u) {
+      m_current_key_providing_path.pop_back();
+    }
+  };
 
   if (current.node.is_leaf) {
-    if (number_of_keys == 1u) {
+    const auto no_keys_left_in_node = (index_of_key_to_take == 0u);
+    if (no_keys_left_in_node) {
       const auto taken_keys_count =
         get_number_of_keys_taken_from_node_during_rebalance(current.node);
       if (taken_keys_count > 0u) {
@@ -271,17 +279,17 @@ sha1_t btree_rebalancer<DataStorage>::get_greatest_not_visited_key()
         this->write_node(current.node);
       }
 
-      while (current_key_providing_node().node.keys_count == 0u) {
-        m_current_key_providing_path.pop_back();
-      }
+      skip_empty_nodes_in_path();
     }
     return key;
   }
 
-  // Can go to left sibling
-  if (current.child_index >= 1u) {
+  // The node is not a leaf. Try go down the left child subtree.
+  const auto can_go_to_left_child = (current.child_index >= 1u);
+  if (can_go_to_left_child) {
     --current.child_index;
 
+    // Go to the rightmost node of the left child subtree.
     bool is_leaf{ false };
 
     do {
@@ -297,8 +305,11 @@ sha1_t btree_rebalancer<DataStorage>::get_greatest_not_visited_key()
     return key;
   }
 
+  // Can not go to the left child (it does not exists). Go to the parent node.
   this->write_node(current.node);
   m_current_key_providing_path.pop_back();
+
+  skip_empty_nodes_in_path();
 
   return key;
 }
