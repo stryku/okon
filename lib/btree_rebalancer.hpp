@@ -88,7 +88,8 @@ void btree_rebalancer<DataStorage>::create_nodes_to_fulfill_b_tree(btree_node& n
 
   const auto children_are_leafs = (current_level + 1u == this->m_tree_height);
   const auto children_count = node.children_count();
-  
+
+  // Handle current rightmost child.
   if (!children_are_leafs && children_count > 0u) {
     auto rightmost_child = this->read_node(node.rightmost_pointer());
     create_nodes_to_fulfill_b_tree(rightmost_child, current_level + 1u);
