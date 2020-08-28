@@ -58,8 +58,8 @@ private:
   progress_callback_t m_progress_callback;
   int m_last_reported_progress{ k_progress_never_reported };
 
-  unsigned m_total_sha1_count{};
-  unsigned m_sha1_written_to_tree_count{};
+  unsigned long long m_total_sha1_count{};
+  unsigned long long m_sha1_written_to_tree_count{};
 
   std::mutex m_processing_sorted_files_mtx;
   std::array<std::condition_variable, k_intermediate_files_count> m_sorted_files_cvs;
