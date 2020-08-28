@@ -40,7 +40,7 @@ okon_prepare_result okon_prepare(const char* input_db_file_path, const char* wor
 
 okon_exists_result okon_exists_text(const char* sha1, const char* processed_file_path)
 {
-  const auto sha1_bin = okon::string_sha1_to_binary(sha1);
+  const auto sha1_bin = okon::simd_string_sha1_to_binary(sha1);
   return okon_exists_binary(sha1_bin.data(), processed_file_path);
 }
 
