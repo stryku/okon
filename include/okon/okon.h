@@ -10,7 +10,8 @@ enum okon_prepare_result
   okon_prepare_result_could_not_open_input_file,         //!< Issue while opening input file.
   okon_prepare_result_could_not_open_intermediate_files, //!< Issue while creating intermediate
                                                          //!< files.
-  okon_prepare_result_could_not_open_output              //!< Issue while creating output file.
+  okon_prepare_result_could_not_open_output,             //!< Issue while creating output file.
+  okon_prepare_result_unspecified_failure                //!< Unspecified failure occurred
 };
 
 enum okon_prepare_progress_special_value
