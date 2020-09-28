@@ -36,6 +36,8 @@ okon_prepare_result okon_prepare(const char* input_db_file_path, const char* wor
     case okon::preparer::result ::could_not_open_output:
       return okon_prepare_result ::okon_prepare_result_could_not_open_output;
   }
+
+  return okon_prepare_result ::okon_prepare_result_unspecified_failure;
 }
 
 okon_exists_result okon_exists_text(const char* sha1, const char* processed_file_path)
@@ -46,7 +48,8 @@ okon_exists_result okon_exists_text(const char* sha1, const char* processed_file
 
 okon_exists_result okon_exists_binary(const void* sha1, const char* processed_file_path)
 {
-  okon::fstream_wrapper file{ processed_file_path };
+  okon::fstream_wrapper file{ processed_file_path,
+                              std::ios::in | std::ios::out | std::ios::binary };
 
   if (!file.is_open()) {
     return okon_exists_result::okon_prepare_result_could_not_open_file;
