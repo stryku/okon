@@ -30,7 +30,7 @@ target_include_directories(okon
 
 if(OKON_USE_SIMD)
     target_compile_definitions(okon
-        PRIVATE
+        PUBLIC
             OKON_USE_SIMD
     )
 endif()
