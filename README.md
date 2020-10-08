@@ -92,12 +92,13 @@ Then, even with a couple-GB file, searching is really fast.
 CMake and C++17 are required.
 
 CMake options:
+- `OKON_USE_SIMD=ON/OFF` (default is `ON`) - Use SIMD for text to binary SHA-1 conversion.
 - `OKON_ARCH` - (optional) - `OKON_ARCH` can be specified to compile `okon` with proper `-march=` argument. If not provided, `okon` does not set anything.
-- `OKON_WITH_CLI=ON/OFF` - Build okon-cli binary.
-- `OKON_WITH_TESTS=ON/OFF` - Build tests.
-- `OKON_WITH_HEAVY_TEST=ON/OFF` - Add target for heavy test (requires python3). Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file. If `OKON_WITH_HEAVY_TEST` is set to ON:
+- `OKON_WITH_CLI=ON/OFF` (default is `OFF`) - Build okon-cli binary.
+- `OKON_WITH_TESTS=ON/OFF` (default is `OFF`) - Build tests.
+- `OKON_WITH_HEAVY_TEST=ON/OFF` (default is `OFF`) - Add target for heavy test (requires python3). Heavy test takes original database, prepares okon's file, iterates over all hashes in original db and verifies that it's findable in prepared file. If `OKON_WITH_HEAVY_TEST` is set to ON:
   * `OKON_HEAVY_TEST_ORIGINAL_DB=path/to/file` - Path to a file containing original HIBP database, over which the heavy test should be run.
-- `OKON_WITH_BENCHMARKS=ON/OFF` - Build benchmarks (requires googlebenchmark). If `OKON_WITH_BENCHMARKS` is set to ON. Before building benchmarks, please see [benchmarks readme](https://github.com/stryku/okon/blob/master/benchmark/README.md)
+- `OKON_WITH_BENCHMARKS=ON/OFF` (default is `OFF`) - Build benchmarks (requires googlebenchmark). If `OKON_WITH_BENCHMARKS` is set to ON. Before building benchmarks, please see [benchmarks readme](https://github.com/stryku/okon/blob/master/benchmark/README.md)
 
 
 Building routine:
