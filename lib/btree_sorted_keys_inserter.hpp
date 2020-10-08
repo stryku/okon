@@ -1,6 +1,7 @@
 #pragma once
 
 #include "btree_base.hpp"
+#include "btree_rebalancer.hpp"
 #include "sha1_utils.hpp"
 
 #include <vector>
@@ -24,14 +25,18 @@ private:
   btree_node& current_node();
 
 private:
+  DataStorage& m_storage;
   btree_node::pointer_t m_next_node_ptr{ 0u };
   std::vector<btree_node> m_current_path;
+  unsigned m_tree_height;
 };
 
 template <typename DataStorage>
 btree_sorted_keys_inserter<DataStorage>::btree_sorted_keys_inserter(DataStorage& storage,
                                                                     btree_node::order_t order)
   : btree_base<DataStorage>{ storage, order }
+  , m_storage{ storage }
+  , m_tree_height{ 1u }
 {
   auto& root = m_current_path.emplace_back(order, btree_node::k_unused_pointer);
 
@@ -55,6 +60,9 @@ void btree_sorted_keys_inserter<DataStorage>::finalize_inserting()
   for (const auto& node : m_current_path) {
     this->write_node(node);
   }
+
+  btree_rebalancer rebalancer{ m_storage, m_next_node_ptr, m_tree_height };
+  rebalancer.rebalance();
 }
 
 template <typename DataStorage>
@@ -107,6 +115,7 @@ void btree_sorted_keys_inserter<DataStorage>::split_root_and_grow(const sha1_t& 
   create_children_till_leaf(level_from_leafs);
 
   this->set_root_ptr(new_root_ptr);
+  ++m_tree_height;
 }
 
 template <typename DataStorage>
@@ -137,5 +146,4 @@ btree_node& btree_sorted_keys_inserter<DataStorage>::current_node()
 {
   return m_current_path.back();
 }
-
 }

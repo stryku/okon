@@ -8,6 +8,7 @@ namespace okon::test {
 constexpr auto k_file_metadata_size{ sizeof(uint32_t) +
                                      sizeof(btree_node::pointer_t) }; // t + root pointer
 constexpr std::string_view k_empty_sha1{ "0000000000000000000000000000000000000000" };
+constexpr std::string_view k_uninteresting_sha1{ "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF" };
 constexpr btree_node::order_t k_test_order_value{ 2u };
 
 #pragma pack(push, 1)
@@ -91,9 +92,10 @@ inline decoded_storage<Order> decode_storage(const std::vector<uint8_t>& binary_
 inline btree_node make_node(bool is_leaf, uint32_t keys_count,
                             std::vector<btree_node::pointer_t> pointers,
                             const std::vector<std::string_view>& keys,
-                            btree_node::pointer_t parent_ptr)
+                            btree_node::pointer_t parent_ptr,
+                            btree_node::order_t order = k_test_order_value)
 {
-  btree_node node{ k_test_order_value, 0u };
+  btree_node node{ order, 0u };
 
   node.is_leaf = is_leaf;
   node.keys_count = keys_count;
@@ -108,10 +110,13 @@ inline btree_node make_node(bool is_leaf, uint32_t keys_count,
   return node;
 }
 
-MATCHER_P(StorageEq, expected, "")
+template <btree_node::order_t Order, typename Result, typename Expected>
+bool storage_eq_impl(Result&& result, Expected&& expected)
 {
-  const auto expected_storage = decode_storage<k_test_order_value>(expected);
-  const auto result_storage = decode_storage<k_test_order_value>(arg);
+  const auto uninteresting_key = string_sha1_to_binary(k_uninteresting_sha1);
+
+  const auto expected_storage = decode_storage<Order>(expected);
+  const auto result_storage = decode_storage<Order>(result);
 
   auto ok{ true };
 
@@ -160,7 +165,7 @@ MATCHER_P(StorageEq, expected, "")
     }
 
     for (auto j = 0u; j < exp.keys.size(); ++j) {
-      if (result.keys[j] != exp.keys[j]) {
+      if (exp.keys[j] != uninteresting_key && result.keys[j] != exp.keys[j]) {
         GTEST_COUT << "Result Node[" << i << "].Keys[" << j << "] ("
                    << binary_sha1_to_string(result.keys[j]) << ") != Expected Node[" << i
                    << "].Keys[" << j << "] (" << binary_sha1_to_string(exp.keys[j]) << ")\n";
@@ -176,5 +181,15 @@ MATCHER_P(StorageEq, expected, "")
   }
 
   return ok;
+}
+
+MATCHER_P(StorageEq, expected, "")
+{
+  return storage_eq_impl<k_test_order_value>(arg, expected);
+}
+
+MATCHER_P(StorageOrder3Eq, expected, "")
+{
+  return storage_eq_impl<3u>(arg, expected);
 }
 }

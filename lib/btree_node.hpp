@@ -4,6 +4,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <optional>
 #include <vector>
 
 namespace okon {
@@ -29,6 +30,12 @@ public:
   bool contains(const sha1_t& sha1) const;
 
   bool is_full() const;
+
+  pointer_t rightmost_pointer() const;
+  uint32_t children_count() const;
+  std::optional<pointer_t> get_child_pointer_prev_of(pointer_t ptr) const;
+
+  std::optional<unsigned> index_of_child_pointer(pointer_t ptr) const;
 
 public:
   bool is_leaf{ false };
