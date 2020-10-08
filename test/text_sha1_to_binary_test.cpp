@@ -31,7 +31,7 @@ TextSha1ToBinaryState values[] = {
 TEST_P(TextSha1ToBinaryTest, ProducesCorrectBinary)
 {
   const auto& [text_sha1, expected] = GetParam();
-  const auto result = simd_string_sha1_to_binary(text_sha1.data());
+  const auto result = text_sha1_to_binary(text_sha1.data());
   EXPECT_THAT(result, Eq(expected));
 }
 

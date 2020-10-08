@@ -15,6 +15,8 @@ if(OKON_ARCH)
     add_definitions(-march=${OKON_ARCH})
 endif()
 
+option(OKON_USE_SIMD "Use SIMD for text SHA-1 to binary conversion" ON)
+
 add_subdirectory(lib)
 
 option(OKON_WITH_CLI "Build okon-cli binary" OFF)

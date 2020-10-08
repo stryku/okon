@@ -15,7 +15,7 @@ TEST(Btree, Contains_RootWithoutKey_ReturnsFalse)
 
   btree tree{ storage };
   const auto result =
-    tree.contains(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+    tree.contains(details::string_sha1_to_binary("1000000000000000000000000000000000000000"));
   EXPECT_FALSE(result);
 }
 
@@ -42,7 +42,7 @@ TEST(Btree, Contains_TreeOfHeightTwoWithoutKey_ReturnsFalse)
 
   btree tree{ storage };
   const auto result =
-    tree.contains(string_sha1_to_binary("F000000000000000000000000000000000000000"));
+    tree.contains(details::string_sha1_to_binary("F000000000000000000000000000000000000000"));
   EXPECT_FALSE(result);
 }
 
@@ -58,7 +58,7 @@ TEST(Btree, Contains_KeyInRoot_ReturnsTrue)
 
   btree tree{ storage };
   const auto result =
-    tree.contains(string_sha1_to_binary("0000000000000000000000000000000000000000"));
+    tree.contains(details::string_sha1_to_binary("0000000000000000000000000000000000000000"));
   EXPECT_TRUE(result);
 }
 
@@ -85,7 +85,7 @@ TEST(Btree, Contains_KeyInLeftLeafChild_ReturnsTrue)
 
   btree tree{ storage };
   const auto result =
-    tree.contains(string_sha1_to_binary("1000000000000000000000000000000000000000"));
+    tree.contains(details::string_sha1_to_binary("1000000000000000000000000000000000000000"));
   EXPECT_TRUE(result);
 }
 
@@ -112,7 +112,7 @@ TEST(Btree, Contains_KeyInRightLeafChild_ReturnsTrue)
 
   btree tree{ storage };
   const auto result =
-    tree.contains(string_sha1_to_binary("3000000000000000000000000000000000000000"));
+    tree.contains(details::string_sha1_to_binary("3000000000000000000000000000000000000000"));
   EXPECT_TRUE(result);
 }
 
@@ -178,7 +178,7 @@ TEST(Btree, Contains_KeyInNonLeafChildOfRoot_ReturnsTrue)
 
   btree tree{ storage };
   const auto result =
-    tree.contains(string_sha1_to_binary("E000000000000000000000000000000000000000"));
+    tree.contains(details::string_sha1_to_binary("E000000000000000000000000000000000000000"));
   EXPECT_TRUE(result);
 }
 }

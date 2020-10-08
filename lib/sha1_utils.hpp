@@ -7,8 +7,10 @@
 #include <string>
 #include <string_view>
 
-#define VCL_NAMESPACE vcl
-#include <vcl/vectorclass.h>
+#ifdef OKON_USE_SIMD
+#  define VCL_NAMESPACE vcl
+#  include <vcl/vectorclass.h>
+#endif
 
 namespace okon {
 using sha1_t = std::array<uint8_t, 20u>;
@@ -25,10 +27,17 @@ inline constexpr uint8_t char_to_index(char c)
     case 'E':
     case 'F':
       c -= 'A' - ':';
-      [[fallthrough]];
-    default:
-      c -= '0';
+      break;
+    case 'a':
+    case 'b':
+    case 'c':
+    case 'd':
+    case 'e':
+    case 'f':
+      c -= 'a' - ':';
+      break;
   }
+  c -= '0';
 
   return static_cast<uint8_t>(c);
 }
@@ -40,17 +49,19 @@ inline constexpr uint8_t two_first_chars_to_byte(const char* cs)
   return byte;
 }
 
-inline sha1_t string_sha1_to_binary(std::string_view sha1_text)
+namespace details {
+inline sha1_t string_sha1_to_binary(const char* sha1_text)
 {
   okon::sha1_t sha1;
 
   for (auto i = 0; i < 40; i += 2) {
-    sha1[i / 2] = two_first_chars_to_byte(sha1_text.data() + i);
+    sha1[i / 2] = two_first_chars_to_byte(sha1_text + i);
   }
 
   return sha1;
 }
 
+#ifdef OKON_USE_SIMD
 // The function assumes that ((const char*)text)[63] is accessible.
 inline sha1_t simd_string_sha1_to_binary(const void* text)
 {
@@ -85,6 +96,17 @@ inline sha1_t simd_string_sha1_to_binary(const void* text)
   }
 
   return result_arr;
+}
+#endif
+}
+
+inline sha1_t text_sha1_to_binary(const char* sha1_text)
+{
+#ifdef OKON_USE_SIMD
+  return details::simd_string_sha1_to_binary(sha1_text);
+#else
+  return details::string_sha1_to_binary(sha1_text);
+#endif
 }
 
 inline std::string binary_sha1_to_string(const sha1_t& sha1)

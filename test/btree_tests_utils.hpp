@@ -103,7 +103,7 @@ inline btree_node make_node(bool is_leaf, uint32_t keys_count,
 
   node.keys.clear();
   std::transform(std::cbegin(keys), std::cend(keys), std::back_inserter(node.keys),
-                 [](std::string_view sha1) { return string_sha1_to_binary(sha1); });
+                 [](std::string_view sha1) { return details::string_sha1_to_binary(sha1.data()); });
 
   node.parent_pointer = parent_ptr;
 
@@ -113,7 +113,7 @@ inline btree_node make_node(bool is_leaf, uint32_t keys_count,
 template <btree_node::order_t Order, typename Result, typename Expected>
 bool storage_eq_impl(Result&& result, Expected&& expected)
 {
-  const auto uninteresting_key = string_sha1_to_binary(k_uninteresting_sha1);
+  const auto uninteresting_key = details::string_sha1_to_binary(k_uninteresting_sha1.data());
 
   const auto expected_storage = decode_storage<Order>(expected);
   const auto result_storage = decode_storage<Order>(result);
