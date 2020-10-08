@@ -28,6 +28,13 @@ target_include_directories(okon
         ${OKON_3RDPARTY_DIR}
 )
 
+if(OKON_USE_SIMD)
+    target_compile_definitions(okon
+        PUBLIC
+            OKON_USE_SIMD
+    )
+endif()
+
 
 set_target_properties(okon
     PROPERTIES

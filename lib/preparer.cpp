@@ -72,7 +72,7 @@ preparer::result preparer::prepare()
 void preparer::add_sha1_to_file(std::string_view sha1)
 {
   const auto index = two_first_chars_to_byte(sha1.data());
-  m_sha1_buffers[index].emplace_back(simd_string_sha1_to_binary(sha1.data()));
+  m_sha1_buffers[index].emplace_back(text_sha1_to_binary(sha1.data()));
 
   if (m_sha1_buffers[index].size() >= k_sha1_buffer_max_size) {
     write_sha1_buffer(index);
